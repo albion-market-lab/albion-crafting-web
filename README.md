@@ -45,6 +45,19 @@ Default umur data (misalnya 6 jam) adalah **konfigurasi**, bukan klaim real-time
 - Harga lama/kosong diberi status jelas serta estimasi parsial tidak menyesatkan.
 - Website dapat berjalan tanpa VPS dan tanpa akses tulis ke Google Sheets.
 
+## Sumber data awal yang sudah ada (28 Oktober 2026)
+
+Google Sheets proyek telah diinisialisasi dengan tab `Items`, `Craft Recipes`, `Refining Recipes`, dan `Market Prices` (plus `README`). Data item dan resep sudah terisi; **harga masih kosong**.
+
+Untuk UI:
+- Ambil `item_id` + `display_name_en` dari catalog. `name_status=name_missing` berarti nama tampilan belum tersedia, jadi boleh fallback ke ID dengan label jelas.
+- Filter item yang punya `has_crafting_recipe=true`, namun jangan menjanjikan semua item Albion sudah didukung.
+- Ketika kalkulasi menggunakan resep dengan bahan khusus atau belum tersedia, tampilkan warning yang diberikan calculator.
+- Harga **kosong** → `Belum ada data`; harga **lama** → tampilkan nominal + usia observasi. Jangan menampilkan estimasi modal lengkap bila sebagian harga kosong.
+- Website wajib memakai endpoint **read-only** untuk mengakses snapshot harga, tanpa mengekspos akses tulis ke Google Sheets.
+
+**Sumber harga tetap private-only:** tidak mengambil harga dari API komunitas dan tidak mengunggah hasil scan pribadi ke komunitas. Sheet harga masih kosong hingga receiver diimplementasikan.
+
 ## Ekosistem repositori
 
 | Repositori | Tanggung jawab |
