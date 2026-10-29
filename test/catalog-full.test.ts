@@ -17,6 +17,7 @@ describe("full catalog snapshot", () => {
     const result = calculateMaterials({ catalog, targets });
     expect(result.craftOutputs.map(({ itemId }) => itemId)).toEqual(targets.map(({ itemId }) => itemId));
     expect(result.shoppingList.length).toBeGreaterThan(0);
+    expect(result.recipeWarnings).toEqual([]);
     expect(support.supportedCraftableIds).not.toContain("T4_CAPEITEM_FW_BRIDGEWATCH");
   });
 });

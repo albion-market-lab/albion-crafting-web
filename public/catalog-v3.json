@@ -8854,7 +8854,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 2,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T3_WOOD",
@@ -8867,7 +8867,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 3,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T4_WOOD",
@@ -8880,7 +8880,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T5_WOOD",
@@ -8893,7 +8893,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T6_WOOD",
@@ -8906,7 +8906,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T7_WOOD",
@@ -8919,7 +8919,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T8_WOOD",
@@ -8932,7 +8932,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T4_WOOD_LEVEL1@1",
@@ -8945,7 +8945,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T5_WOOD_LEVEL1@1",
@@ -8958,7 +8958,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T6_WOOD_LEVEL1@1",
@@ -8971,7 +8971,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T7_WOOD_LEVEL1@1",
@@ -8984,7 +8984,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T8_WOOD_LEVEL1@1",
@@ -8997,7 +8997,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T4_WOOD_LEVEL2@2",
@@ -9010,7 +9010,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T5_WOOD_LEVEL2@2",
@@ -9023,7 +9023,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T6_WOOD_LEVEL2@2",
@@ -9036,7 +9036,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T7_WOOD_LEVEL2@2",
@@ -9049,7 +9049,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T8_WOOD_LEVEL2@2",
@@ -9062,7 +9062,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T4_WOOD_LEVEL3@3",
@@ -9075,7 +9075,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T5_WOOD_LEVEL3@3",
@@ -9088,7 +9088,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T6_WOOD_LEVEL3@3",
@@ -9101,7 +9101,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T7_WOOD_LEVEL3@3",
@@ -9114,7 +9114,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T8_WOOD_LEVEL3@3",
@@ -9127,7 +9127,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T4_WOOD_LEVEL4@4",
@@ -9140,7 +9140,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T5_WOOD_LEVEL4@4",
@@ -9153,7 +9153,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T6_WOOD_LEVEL4@4",
@@ -9166,7 +9166,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T7_WOOD_LEVEL4@4",
@@ -9179,7 +9179,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T8_WOOD_LEVEL4@4",
@@ -9192,7 +9192,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Wood"
+      "category": "raw"
     },
     {
       "itemId": "T1_ROCK",
@@ -9218,7 +9218,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 2,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T3_ROCK",
@@ -9231,7 +9231,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 3,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T4_ROCK",
@@ -9244,7 +9244,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T5_ROCK",
@@ -9257,7 +9257,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T6_ROCK",
@@ -9270,7 +9270,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T7_ROCK",
@@ -9283,7 +9283,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T8_ROCK",
@@ -9296,7 +9296,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Rock"
+      "category": "raw"
     },
     {
       "itemId": "T4_ROCK_LEVEL1@1",
@@ -9504,7 +9504,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 2,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T3_ORE",
@@ -9517,7 +9517,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 3,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T4_ORE",
@@ -9530,7 +9530,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T5_ORE",
@@ -9543,7 +9543,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T6_ORE",
@@ -9556,7 +9556,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T7_ORE",
@@ -9569,7 +9569,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T8_ORE",
@@ -9582,7 +9582,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T4_ORE_LEVEL1@1",
@@ -9595,7 +9595,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T5_ORE_LEVEL1@1",
@@ -9608,7 +9608,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T6_ORE_LEVEL1@1",
@@ -9621,7 +9621,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T7_ORE_LEVEL1@1",
@@ -9634,7 +9634,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T8_ORE_LEVEL1@1",
@@ -9647,7 +9647,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T4_ORE_LEVEL2@2",
@@ -9660,7 +9660,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T5_ORE_LEVEL2@2",
@@ -9673,7 +9673,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T6_ORE_LEVEL2@2",
@@ -9686,7 +9686,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T7_ORE_LEVEL2@2",
@@ -9699,7 +9699,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T8_ORE_LEVEL2@2",
@@ -9712,7 +9712,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T4_ORE_LEVEL3@3",
@@ -9725,7 +9725,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T5_ORE_LEVEL3@3",
@@ -9738,7 +9738,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T6_ORE_LEVEL3@3",
@@ -9751,7 +9751,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T7_ORE_LEVEL3@3",
@@ -9764,7 +9764,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T8_ORE_LEVEL3@3",
@@ -9777,7 +9777,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T4_ORE_LEVEL4@4",
@@ -9790,7 +9790,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T5_ORE_LEVEL4@4",
@@ -9803,7 +9803,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T6_ORE_LEVEL4@4",
@@ -9816,7 +9816,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T7_ORE_LEVEL4@4",
@@ -9829,7 +9829,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T8_ORE_LEVEL4@4",
@@ -9842,7 +9842,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Ore"
+      "category": "raw"
     },
     {
       "itemId": "T1_HIDE",
@@ -9868,7 +9868,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 2,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T3_HIDE",
@@ -9881,7 +9881,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 3,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T4_HIDE",
@@ -9894,7 +9894,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T5_HIDE",
@@ -9907,7 +9907,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T6_HIDE",
@@ -9920,7 +9920,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T7_HIDE",
@@ -9933,7 +9933,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T8_HIDE",
@@ -9946,7 +9946,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T4_HIDE_LEVEL1@1",
@@ -9959,7 +9959,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T5_HIDE_LEVEL1@1",
@@ -9972,7 +9972,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T6_HIDE_LEVEL1@1",
@@ -9985,7 +9985,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T7_HIDE_LEVEL1@1",
@@ -9998,7 +9998,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T8_HIDE_LEVEL1@1",
@@ -10011,7 +10011,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T4_HIDE_LEVEL2@2",
@@ -10024,7 +10024,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T5_HIDE_LEVEL2@2",
@@ -10037,7 +10037,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T6_HIDE_LEVEL2@2",
@@ -10050,7 +10050,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T7_HIDE_LEVEL2@2",
@@ -10063,7 +10063,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T8_HIDE_LEVEL2@2",
@@ -10076,7 +10076,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T4_HIDE_LEVEL3@3",
@@ -10089,7 +10089,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T5_HIDE_LEVEL3@3",
@@ -10102,7 +10102,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T6_HIDE_LEVEL3@3",
@@ -10115,7 +10115,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T7_HIDE_LEVEL3@3",
@@ -10128,7 +10128,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T8_HIDE_LEVEL3@3",
@@ -10141,7 +10141,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T4_HIDE_LEVEL4@4",
@@ -10154,7 +10154,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T5_HIDE_LEVEL4@4",
@@ -10167,7 +10167,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T6_HIDE_LEVEL4@4",
@@ -10180,7 +10180,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T7_HIDE_LEVEL4@4",
@@ -10193,7 +10193,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T8_HIDE_LEVEL4@4",
@@ -10206,7 +10206,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Hide"
+      "category": "raw"
     },
     {
       "itemId": "T2_FIBER",
@@ -10219,7 +10219,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 2,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T3_FIBER",
@@ -10232,7 +10232,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 3,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T4_FIBER",
@@ -10245,7 +10245,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T5_FIBER",
@@ -10258,7 +10258,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T6_FIBER",
@@ -10271,7 +10271,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T7_FIBER",
@@ -10284,7 +10284,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T8_FIBER",
@@ -10297,7 +10297,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T4_FIBER_LEVEL1@1",
@@ -10310,7 +10310,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T5_FIBER_LEVEL1@1",
@@ -10323,7 +10323,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T6_FIBER_LEVEL1@1",
@@ -10336,7 +10336,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T7_FIBER_LEVEL1@1",
@@ -10349,7 +10349,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T8_FIBER_LEVEL1@1",
@@ -10362,7 +10362,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T4_FIBER_LEVEL2@2",
@@ -10375,7 +10375,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T5_FIBER_LEVEL2@2",
@@ -10388,7 +10388,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T6_FIBER_LEVEL2@2",
@@ -10401,7 +10401,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T7_FIBER_LEVEL2@2",
@@ -10414,7 +10414,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T8_FIBER_LEVEL2@2",
@@ -10427,7 +10427,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T4_FIBER_LEVEL3@3",
@@ -10440,7 +10440,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T5_FIBER_LEVEL3@3",
@@ -10453,7 +10453,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T6_FIBER_LEVEL3@3",
@@ -10466,7 +10466,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T7_FIBER_LEVEL3@3",
@@ -10479,7 +10479,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T8_FIBER_LEVEL3@3",
@@ -10492,7 +10492,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T4_FIBER_LEVEL4@4",
@@ -10505,7 +10505,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 4,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T5_FIBER_LEVEL4@4",
@@ -10518,7 +10518,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 5,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T6_FIBER_LEVEL4@4",
@@ -10531,7 +10531,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 6,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T7_FIBER_LEVEL4@4",
@@ -10544,7 +10544,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 7,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T8_FIBER_LEVEL4@4",
@@ -10557,7 +10557,7 @@
       "hasRefiningRecipe": false,
       "sourceUrl": "https://github.com/vkorne-web/albion-market/blob/main/items_raw.txt",
       "tier": 8,
-      "category": "Raw: Fiber"
+      "category": "raw"
     },
     {
       "itemId": "T2_PLANKS",
