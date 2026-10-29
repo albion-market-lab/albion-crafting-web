@@ -130,6 +130,7 @@ describe("multi-target crafting planner", () => {
     expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
     expect(screen.getByText("Estimasi modal · unavailable")).toBeVisible();
     expect(screen.getAllByText("—")).not.toHaveLength(0);
+    expect(screen.queryByText("Rekomendasi")).not.toBeInTheDocument();
     view.unmount();
 
     const offline = render(<App catalogLoader={loader} priceLoader={async () => null} />);

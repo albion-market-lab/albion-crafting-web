@@ -15,9 +15,13 @@ const silver = (value: number) => `${integer.format(value)} silver`;
 function PriceTable({ estimate, nameOf }: { estimate: BuyOrderEstimateResult; nameOf: (id: string) => string }) {
   return <><div className="table-wrap"><table className="price-table">
     <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Bid</th><th>Subtotal</th><th>Observasi</th><th>Status</th></tr></thead>
-    <tbody>{estimate.materials.flatMap((material) => material.candidates.map((candidate) => <tr key={`${material.itemId}:${candidate.city}`}>
-      <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}</small></td><td>{integer.format(material.quantity)}</td><td>{candidate.bidPrice === undefined ? "—" : silver(candidate.bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span></td>
-    </tr>))}</tbody>
+    <tbody>{estimate.materials.flatMap((material) => material.candidates.map((candidate) => {
+      const recommended = material.suggestedCity === candidate.city;
+      const bidPrice = recommended ? material.suggestedBidPrice : candidate.bidPrice;
+      return <tr className={recommended ? "recommended-price" : undefined} key={`${material.itemId}:${candidate.city}`}>
+        <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span></td>
+      </tr>;
+    }))}</tbody>
   </table></div><div className="price-summary"><span>Estimasi modal · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.status !== "complete" && <p>Total belum lengkap karena sebagian harga atau cakupan kota tidak tersedia.</p>}</div></>;
 }
 

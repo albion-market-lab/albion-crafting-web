@@ -49,6 +49,10 @@ describe("Task 11 MVP smoke flow", () => {
     expect(await screen.findAllByText("fresh")).not.toHaveLength(0);
     expect(screen.getAllByText("stale")).not.toHaveLength(0);
     expect(screen.getAllByText("missing")).not.toHaveLength(0);
+    const martlock = screen.getByText("Rekomendasi").closest("tr")!;
+    expect(within(martlock).getByText("Martlock")).toBeVisible();
+    expect(within(martlock).getByText("81 silver")).toBeVisible();
+    expect(within(martlock).getByText("stale")).toBeVisible();
     expect(screen.getAllByText("518.400 silver")).toHaveLength(2);
     expect(screen.getByText(/Estimasi modal · partial/)).toBeVisible();
   });
