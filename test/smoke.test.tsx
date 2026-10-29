@@ -42,7 +42,7 @@ describe("Task 11 MVP smoke flow", () => {
       expect(within(row).getAllByRole("cell")[1]).toHaveTextContent(new Intl.NumberFormat("id-ID").format(item.requiredQuantity));
     }
     for (const item of expected.shoppingList) {
-      const card = screen.getAllByText(item.itemId).map((node) => node.closest("article")).find(Boolean)!;
+      const card = screen.getByText(`(${item.itemId})`).closest("article")!;
       expect(within(card).getByText(new Intl.NumberFormat("id-ID").format(item.quantity))).toBeVisible();
     }
     expect(priceLoader).toHaveBeenCalledWith(expected.shoppingList.map(({ itemId }) => itemId));

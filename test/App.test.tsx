@@ -35,8 +35,9 @@ describe("multi-target crafting planner", () => {
     expect(screen.getByRole("heading", { name: "Crafting Output" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Shopping List" })).toBeVisible();
-    const fiber = screen.getByText("T6_FIBER").closest("article")!;
+    const fiber = screen.getByText("(T6_FIBER)").closest("article")!;
     expect(within(fiber).getByText("6.400")).toBeVisible();
+    expect(within(fiber).getByText("Fiber · T6")).toBeVisible();
     expect(await screen.findByText("Mode offline")).toBeVisible();
   });
 
@@ -118,6 +119,16 @@ describe("multi-target crafting planner", () => {
     expect(screen.getAllByText("stale")).not.toHaveLength(0);
     expect(screen.getAllByText("missing")).not.toHaveLength(0);
     expect(screen.getAllByText("5.184 silver")).toHaveLength(2);
+    const priceTable = screen.getByRole("table", { name: "Harga Shopping List" });
+    expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
+    const fiberFilter = screen.getByRole("button", { name: "Filter harga Amberleaf Cotton" });
+    await user.click(fiberFilter);
+    expect(fiberFilter).toHaveAttribute("aria-pressed", "true");
+    expect(within(priceTable).queryByText("Cotton")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Amberleaf Cotton");
+    await user.click(fiberFilter);
+    expect(fiberFilter).toHaveAttribute("aria-pressed", "false");
+    expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
   });
 
   it("distinguishes empty, offline, and failed price sources while preserving materials", async () => {
