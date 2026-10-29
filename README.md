@@ -60,7 +60,7 @@ CATALOG_JSON=/absolute/path/to/output/catalog.json corepack pnpm sync:catalog
 `manifest.json` dan `coverage.json` wajib berada di sebelah `catalog.json`. Script memakai `calculateMaterials()` untuk memvalidasi setiap craftable dan menulis support report; tidak ada recipe yang dibuat atau ditebak oleh web.
 
 ## Pengalaman pengguna (MVP)
-1. Cari dan pilih equipment dari [catalog](https://github.com/albion-market-lab/albion-item-catalog) (item, tier/enchantment bila tersedia).
+1. Pilih kategori equipment dari tree, lalu persempit dengan pencarian, tier, dan enchantment.
 2. Isi quantity lalu **Tambah Item**; satu plan dapat berisi banyak item dengan tier dan jumlah berbeda.
 3. Edit atau hapus target tanpa mengulang plan dari awal.
 4. Tekan **Hitung** untuk menjalankan [calculator](https://github.com/albion-market-lab/albion-crafting-calculator).
@@ -70,6 +70,14 @@ CATALOG_JSON=/absolute/path/to/output/catalog.json corepack pnpm sync:catalog
    - **Crafting Output** — daftar equipment dan total unit yang direncanakan untuk Black Market.
 
 Contoh target (nama bersifat ilustratif, pemilihan sebenarnya menggunakan item ID yang valid): cloth armor T6 × 100 + plate shoes T5 × 20.
+
+### Filter kategori
+
+Tree **Equipment** menyediakan Helmet, Armor, Shoes, Weapon, dan Off-hand dengan cabang Cloth/Leather/Plate; Bag dan Cape tersedia langsung. Breadcrumb pada tombol menunjukkan filter aktif, sedangkan **All Supported**, **Reset filter**, atau **Clear filters** mengembalikan seluruh katalog. Tree dapat ditutup dengan `Escape` atau klik di luar dan tetap dapat digunakan melalui keyboard.
+
+Klasifikasi armor mengikuti slot dan material pada ID katalog. Weapon dan Off-hand mengikuti kelompok material resep yang tidak ambigu (`CLOTH`, `LEATHER`, atau `METALBAR`); item yang tidak dapat dipetakan secara aman masuk **Other Equipment**, bukan dihilangkan. Dengan fallback ini, seluruh 6.066 item dalam support artifact tetap dapat dicapai. Consumables, Resources, dan Others sengaja nonaktif sebagai **Coming Soon** karena belum termasuk scope katalog craftable saat ini.
+
+Validasi terakhir untuk filter ini: lint, typecheck, 19 unit/integration tests, smoke test, dan production build lulus. Known limitation: recipe weapon/off-hand dengan nol atau lebih dari satu kelompok material tidak dipaksakan ke Cloth/Leather/Plate dan tetap berada di **Other Equipment** sampai metadata katalog menyediakan klasifikasi yang tegas.
 
 ## Harga dan status ketersediaan
 Web hanya **membaca** snapshot harga dari Google Sheets melalui endpoint read-only [market receiver](https://github.com/albion-market-lab/albion-market-receiver) atau adapter baca yang aman. Tidak ada harga dari sumber komunitas.

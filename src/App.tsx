@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
 import { loadCatalog, type WebCatalogData } from "./catalog.js";
 import { loadPrices, type PriceSnapshot } from "./prices.js";
+import { CategoryTree } from "./CategoryTree.js";
+import { buildCategoryAssignments, type CategorySelection } from "./categories.js";
 
 interface AppProps {
   catalogLoader?: () => Promise<WebCatalogData>;
@@ -41,7 +43,8 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
   const [selected, setSelected] = useState("");
   const [search, setSearch] = useState("");
   const [tier, setTier] = useState("");
-  const [category, setCategory] = useState("");
+  const [enchantment, setEnchantment] = useState("");
+  const [category, setCategory] = useState<CategorySelection>("all");
   const [quantity, setQuantity] = useState("1");
   const [targets, setTargets] = useState<CraftTarget[]>([]);
   const [result, setResult] = useState<CalculationResult>();
@@ -61,11 +64,12 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
     return catalog?.items.filter((item) => item.hasCraftingRecipe && (!supported || supported.has(item.itemId))) ?? [];
   }, [catalog]);
   const tiers = useMemo(() => [...new Set(craftable.flatMap((item) => item.tier === undefined ? [] : [item.tier]))].sort((a, b) => a - b), [craftable]);
-  const categories = useMemo(() => [...new Set(craftable.flatMap((item) => item.category ? [item.category] : []))].sort(), [craftable]);
+  const enchantments = useMemo(() => [...new Set(craftable.map((item) => item.enchantment))].sort((a, b) => a - b), [craftable]);
+  const categoryAssignments = useMemo(() => catalog ? buildCategoryAssignments(catalog, craftable) : new Map(), [catalog, craftable]);
   const filteredCraftable = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    return craftable.filter((item) => (!query || item.itemId.toLocaleLowerCase().includes(query) || item.displayName.toLocaleLowerCase().includes(query)) && (!tier || item.tier === Number(tier)) && (!category || item.category === category));
-  }, [craftable, search, tier, category]);
+    return craftable.filter((item) => (!query || item.itemId.toLocaleLowerCase().includes(query) || item.displayName.toLocaleLowerCase().includes(query)) && (!tier || item.tier === Number(tier)) && (!enchantment || item.enchantment === Number(enchantment)) && (category === "all" || categoryAssignments.get(item.itemId) === category));
+  }, [craftable, search, tier, enchantment, category, categoryAssignments]);
   const visibleCraftable = filteredCraftable.slice(0, 100);
   useEffect(() => { if (!filteredCraftable.some((item) => item.itemId === selected)) setSelected(filteredCraftable[0]?.itemId ?? ""); }, [filteredCraftable, selected]);
   const itemMap = useMemo(() => new Map(catalog?.items.map((item) => [item.itemId, item])), [catalog]);
@@ -116,9 +120,11 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
     <section className="planner">
       <div className="section-heading"><span>01</span><h2>Target crafting</h2></div>
       <div className="catalog-filters">
+        <CategoryTree value={category} onChange={setCategory} />
         <label>Cari equipment<input aria-label="Cari equipment" type="search" placeholder="Nama atau item ID" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         <label>Tier<select aria-label="Filter tier" value={tier} onChange={(event) => setTier(event.target.value)}><option value="">Semua tier</option>{tiers.map((value) => <option key={value} value={value}>T{value}</option>)}</select></label>
-        <label>Kategori<select aria-label="Filter kategori" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Semua kategori</option>{categories.map((value) => <option key={value}>{value}</option>)}</select></label>
+        <label>Enchantment<select aria-label="Filter enchantment" value={enchantment} onChange={(event) => setEnchantment(event.target.value)}><option value="">Semua enchantment</option>{enchantments.map((value) => <option key={value} value={value}>.{value}</option>)}</select></label>
+        <button className="clear-filters" type="button" onClick={() => { setSearch(""); setTier(""); setEnchantment(""); setCategory("all"); }}>Clear filters</button>
       </div>
       <p className="filter-summary">{integer.format(filteredCraftable.length)} equipment cocok{filteredCraftable.length > 100 ? " · 100 pertama ditampilkan" : ""}</p>
       <div className="target-form">

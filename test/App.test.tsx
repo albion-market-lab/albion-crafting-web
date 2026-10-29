@@ -100,7 +100,7 @@ describe("multi-target crafting planner", () => {
     expect(screen.getByLabelText("Item crafting").querySelectorAll("option")).toHaveLength(100);
     await user.type(screen.getByLabelText("Cari equipment"), "soldier boots");
     await user.selectOptions(screen.getByLabelText("Filter tier"), "5");
-    await user.selectOptions(screen.getByLabelText("Filter kategori"), "equipment");
+    await user.selectOptions(screen.getByLabelText("Filter enchantment"), "0");
     expect(screen.getByRole("option", { name: /Expert's Soldier Boots/ })).toBeVisible();
     expect(screen.queryByRole("option", { name: /Scholar Robe/ })).not.toBeInTheDocument();
   });
