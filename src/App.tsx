@@ -120,8 +120,8 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
     <section className="planner">
       <div className="section-heading"><span>01</span><h2>Target crafting</h2></div>
       <div className="catalog-filters">
+        <label className="catalog-search">Cari equipment<input aria-label="Cari equipment" type="search" placeholder="Cari nama atau item ID…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         <CategoryTree value={category} onChange={setCategory} />
-        <label>Cari equipment<input aria-label="Cari equipment" type="search" placeholder="Nama atau item ID" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         <label>Tier<select aria-label="Filter tier" value={tier} onChange={(event) => setTier(event.target.value)}><option value="">Semua tier</option>{tiers.map((value) => <option key={value} value={value}>T{value}</option>)}</select></label>
         <label>Enchantment<select aria-label="Filter enchantment" value={enchantment} onChange={(event) => setEnchantment(event.target.value)}><option value="">Semua enchantment</option>{enchantments.map((value) => <option key={value} value={value}>.{value}</option>)}</select></label>
         <button className="clear-filters" type="button" onClick={() => { setSearch(""); setTier(""); setEnchantment(""); setCategory("all"); }}>Clear filters</button>
