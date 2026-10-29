@@ -1,8 +1,45 @@
 # Albion Crafting Web
 
-> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **perencanaan — implementasi belum dimulai**.
+> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **Task 06 offline planner implemented**.
 
 Tujuan: dari satu daftar target crafting, pengguna langsung tahu **bahan yang harus dibeli, berapa jumlahnya, di kota mana memasang buy order, dan estimasi modalnya**.
+
+## Menjalankan Task 06
+
+Repository calculator harus tersedia sebagai sibling `../albion-crafting-calculator` dan sudah dibuild. Web memakai dependency `file:` tersebut; source algoritma tidak disalin ke React.
+
+```bash
+cd ../albion-crafting-calculator
+corepack pnpm install --frozen-lockfile
+corepack pnpm build
+
+cd ../albion-crafting-web
+corepack pnpm install --frozen-lockfile
+corepack pnpm dev
+```
+
+Buka URL yang ditampilkan Vite. Planner Task 06 sepenuhnya offline setelah asset dimuat dan tidak membutuhkan receiver maupun data harga.
+
+Validasi:
+
+```bash
+corepack pnpm lint
+corepack pnpm typecheck
+corepack pnpm test
+corepack pnpm build
+```
+
+## Catalog fixture
+
+`public/catalog-v3.json` adalah fixture v3 asli dari Calculator/Catalog integration test. Fixture ini mencakup rantai lengkap `T6_ARMOR_CLOTH_SET1 × 100` dan `T5_SHOES_PLATE_SET1 × 20`; bukan data Albion rekaan.
+
+Untuk menggantinya dengan export v3 lain:
+
+```bash
+CATALOG_JSON=/absolute/path/to/catalog-v3.json corepack pnpm sync:catalog
+```
+
+Tanpa `CATALOG_JSON`, script menyalin fixture sibling calculator yang sudah diverifikasi. Commit file JSON hasil sinkronisasi agar build web tidak bergantung pada filesystem sibling saat runtime.
 
 ## Pengalaman pengguna (MVP)
 1. Cari dan pilih equipment dari [catalog](https://github.com/albion-market-lab/albion-item-catalog) (item, tier/enchantment bila tersedia).
@@ -32,11 +69,13 @@ Default umur data (misalnya 6 jam) adalah **konfigurasi**, bukan klaim real-time
 - **Receiver / Sheet** menyediakan snapshot harga dan timestamp; web tidak memegang kredensial tulis.
 - Seluruh tindakan dalam game (**buy order, refining, crafting, caravan, Black Market sell order**) tetap **manual**.
 
-## Pilihan teknis awal
-- Frontend statis, misalnya **React + TypeScript + Vite**.
-- Hosting free tier, misalnya **Cloudflare Pages**.
-- Cache harga seperlunya; tombol refresh data hanya membaca snapshot pribadi, **bukan** mengambil data komunitas.
-- Penyimpanan drafting plan di browser dapat ditambahkan tanpa database pengguna pada MVP.
+## Implementasi Task 06
+- React + TypeScript + Vite, satu halaman responsive tanpa login atau database.
+- Add/edit/delete multi-target; item duplicate dijumlahkan sebelum calculator dipanggil.
+- `calculateMaterials()` dari package calculator menjadi satu-satunya calculation engine.
+- Crafting Output, Refining Plan, dan Shopping List tampil tanpa mengarang harga.
+- Catalog loading/error/empty, quantity invalid, nama missing, dan recipe error ditampilkan eksplisit.
+- Integrasi receiver, freshness, rekomendasi BO, dan deployment production tetap scope Task 10/11.
 
 ## Selesai jika
 - Satu plan menampung item berbeda sekaligus dan bisa diedit.
@@ -47,7 +86,7 @@ Default umur data (misalnya 6 jam) adalah **konfigurasi**, bukan klaim real-time
 
 ## Sumber data awal yang sudah ada (28 Oktober 2026)
 
-Google Sheets proyek telah diinisialisasi dengan tab `Items`, `Craft Recipes`, `Refining Recipes`, dan `Market Prices` (plus `README`). Data item dan resep sudah terisi; **harga masih kosong**.
+Google Sheets proyek telah diinisialisasi dengan tab `Items`, `Craft Recipes`, `Refining Recipes`, dan `Market Prices` (plus `README`). Task 06 tidak membacanya; integrasi harga dilakukan pada Task 10.
 
 Untuk UI:
 - Ambil `item_id` + `display_name_en` dari catalog. `name_status=name_missing` berarti nama tampilan belum tersedia, jadi boleh fallback ke ID dengan label jelas.
@@ -56,7 +95,7 @@ Untuk UI:
 - Harga **kosong** → `Belum ada data`; harga **lama** → tampilkan nominal + usia observasi. Jangan menampilkan estimasi modal lengkap bila sebagian harga kosong.
 - Website wajib memakai endpoint **read-only** untuk mengakses snapshot harga, tanpa mengekspos akses tulis ke Google Sheets.
 
-**Sumber harga tetap private-only:** tidak mengambil harga dari API komunitas dan tidak mengunggah hasil scan pribadi ke komunitas. Sheet harga masih kosong hingga receiver diimplementasikan.
+**Sumber harga tetap private-only:** tidak mengambil harga dari API komunitas dan tidak mengunggah hasil scan pribadi ke komunitas.
 
 ## Ekosistem repositori
 
