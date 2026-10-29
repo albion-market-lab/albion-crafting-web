@@ -1,13 +1,15 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { CatalogData } from "@albion-market-lab/crafting-calculator";
-import catalogJson from "../public/catalog-v3.json";
+import catalogJson from "./fixtures/catalog-v3.json";
 import { App } from "../src/App.js";
+import type { PriceSnapshot } from "../src/prices.js";
 
 const catalog = catalogJson as CatalogData;
 const loader = async () => catalog;
 const now = () => new Date("2026-10-29T06:00:00Z");
+const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
 
 describe("multi-target crafting planner", () => {
   it("aggregates duplicate targets and renders calculator results", async () => {
@@ -89,6 +91,20 @@ describe("multi-target crafting planner", () => {
     expect(await screen.findByRole("option", { name: /T6_ARMOR_CLOTH_SET1 \(nama belum tersedia\)/ })).toBeVisible();
   });
 
+  it("searches and filters equipment without rendering the whole catalog", async () => {
+    const user = userEvent.setup();
+    const large = structuredClone(catalog);
+    large.items.push(...Array.from({ length: 1_000 }, (_, index) => ({ ...large.items[0]!, itemId: `T6_FAKE_${index}`, displayName: `Fixture ${index}`, hasCraftingRecipe: true })));
+    render(<App catalogLoader={async () => large} />);
+    expect(await screen.findByText(/1.002 equipment cocok/)).toBeVisible();
+    expect(screen.getByLabelText("Item crafting").querySelectorAll("option")).toHaveLength(100);
+    await user.type(screen.getByLabelText("Cari equipment"), "soldier boots");
+    await user.selectOptions(screen.getByLabelText("Filter tier"), "5");
+    await user.selectOptions(screen.getByLabelText("Filter kategori"), "equipment");
+    expect(screen.getByRole("option", { name: /Expert's Soldier Boots/ })).toBeVisible();
+    expect(screen.queryByRole("option", { name: /Scholar Robe/ })).not.toBeInTheDocument();
+  });
+
   it("renders successful mixed fresh, stale, and missing private prices", async () => {
     const user = userEvent.setup();
     render(<App catalogLoader={loader} now={now} priceLoader={async () => ({ server: "East/Asia", items: [
@@ -126,5 +142,40 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: "Tambah item" }));
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     expect(await screen.findByRole("alert")).toHaveTextContent("tidak dapat dihubungi");
+  });
+
+  it("ignores an older price response that finishes after the latest calculation", async () => {
+    const user = userEvent.setup();
+    const first = deferred<PriceSnapshot | null>();
+    const second = deferred<PriceSnapshot | null>();
+    const requests = [first, second];
+    let call = 0;
+    render(<App catalogLoader={loader} now={now} priceLoader={() => requests[call++]!.promise} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    const targetQuantity = screen.getByLabelText("Quantity T6_ARMOR_CLOTH_SET1");
+    await user.clear(targetQuantity);
+    await user.type(targetQuantity, "2");
+    await user.tab();
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    second.resolve({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 200, highestBuyObservedAt: "2026-10-29T05:00:00Z" }] });
+    expect(await screen.findAllByText("25.728 silver")).toHaveLength(2);
+    await act(async () => { first.resolve({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 1, highestBuyObservedAt: "2026-10-29T05:00:00Z" }] }); await first.promise; });
+    await waitFor(() => expect(screen.getAllByText("25.728 silver")).toHaveLength(2));
+    expect(screen.queryByText("128 silver")).not.toBeInTheDocument();
+  });
+
+  it("invalidates a pending price request when the target changes", async () => {
+    const user = userEvent.setup();
+    const pending = deferred<PriceSnapshot | null>();
+    render(<App catalogLoader={loader} now={now} priceLoader={() => pending.promise} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    await user.click(screen.getByRole("button", { name: "Hapus" }));
+    await act(async () => { pending.resolve({ server: "East/Asia", items: [] }); await pending.promise; });
+    await waitFor(() => expect(screen.getByText("Plan masih kosong.")).toBeVisible());
+    expect(screen.queryByText("Snapshot harga kosong")).not.toBeInTheDocument();
   });
 });

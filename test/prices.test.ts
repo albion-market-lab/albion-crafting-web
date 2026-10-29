@@ -19,4 +19,13 @@ describe("private price adapter", () => {
     vi.stubGlobal("fetch", async () => Response.json({ server: "East/Asia", items: [{ itemId: "bad-id" }] }));
     await expect(loadPrices(["T5_FIBER"])).rejects.toThrow("invalid price row");
   });
+
+  it("chunks more than 100 item IDs without sending an invalid receiver request", async () => {
+    vi.stubEnv("VITE_PRICE_API_URL", "https://receiver.example");
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => Response.json({ server: "East/Asia", items: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+    await loadPrices(Array.from({ length: 205 }, (_, index) => `T4_ITEM_${index}`));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls.map(([url]) => new URL(String(url)).searchParams.get("itemIds")!.split(",").length)).toEqual([100, 100, 5]);
+  });
 });

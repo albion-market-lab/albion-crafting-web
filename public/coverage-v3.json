@@ -1,0 +1,14 @@
+{
+  "totalItems": 11223,
+  "craftableItems": 6847,
+  "craftingRecipes": 6847,
+  "refiningRecipes": 115,
+  "resolvedRecipes": 6962,
+  "missingCraftingRecipes": 0,
+  "missingRefiningRecipes": 0,
+  "missingLabels": 45,
+  "verifiedTerminalItems": 845,
+  "unknownTerminalItems": 3293,
+  "unsupportedItems": 123,
+  "danglingReferences": 0
+}

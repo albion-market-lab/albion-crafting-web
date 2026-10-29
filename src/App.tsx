@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CatalogData, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
-import { loadCatalog } from "./catalog.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
+import { loadCatalog, type WebCatalogData } from "./catalog.js";
 import { loadPrices, type PriceSnapshot } from "./prices.js";
 
 interface AppProps {
-  catalogLoader?: () => Promise<CatalogData>;
+  catalogLoader?: () => Promise<WebCatalogData>;
   priceLoader?: (itemIds: string[]) => Promise<PriceSnapshot | null>;
   now?: () => Date;
 }
@@ -32,15 +32,19 @@ function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]
 }
 
 export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now = () => new Date() }: AppProps) {
-  const [catalog, setCatalog] = useState<CatalogData>();
+  const [catalog, setCatalog] = useState<WebCatalogData>();
   const [loadError, setLoadError] = useState("");
   const [selected, setSelected] = useState("");
+  const [search, setSearch] = useState("");
+  const [tier, setTier] = useState("");
+  const [category, setCategory] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [targets, setTargets] = useState<CraftTarget[]>([]);
   const [result, setResult] = useState<CalculationResult>();
   const [estimate, setEstimate] = useState<BuyOrderEstimateResult>();
   const [priceState, setPriceState] = useState<"idle" | "loading" | "offline" | "empty" | "ready" | "error">("idle");
   const [error, setError] = useState("");
+  const priceRequestVersion = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -48,15 +52,25 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
     return () => { active = false; };
   }, [catalogLoader]);
 
-  const craftable = useMemo(() => catalog?.items.filter((item) => item.hasCraftingRecipe) ?? [], [catalog]);
-  useEffect(() => { if (!selected && craftable[0]) setSelected(craftable[0].itemId); }, [craftable, selected]);
+  const craftable = useMemo(() => {
+    const supported = catalog?.supportedCraftableIds ? new Set(catalog.supportedCraftableIds) : undefined;
+    return catalog?.items.filter((item) => item.hasCraftingRecipe && (!supported || supported.has(item.itemId))) ?? [];
+  }, [catalog]);
+  const tiers = useMemo(() => [...new Set(craftable.flatMap((item) => item.tier === undefined ? [] : [item.tier]))].sort((a, b) => a - b), [craftable]);
+  const categories = useMemo(() => [...new Set(craftable.flatMap((item) => item.category ? [item.category] : []))].sort(), [craftable]);
+  const filteredCraftable = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    return craftable.filter((item) => (!query || item.itemId.toLocaleLowerCase().includes(query) || item.displayName.toLocaleLowerCase().includes(query)) && (!tier || item.tier === Number(tier)) && (!category || item.category === category));
+  }, [craftable, search, tier, category]);
+  const visibleCraftable = filteredCraftable.slice(0, 100);
+  useEffect(() => { if (!filteredCraftable.some((item) => item.itemId === selected)) setSelected(filteredCraftable[0]?.itemId ?? ""); }, [filteredCraftable, selected]);
   const itemMap = useMemo(() => new Map(catalog?.items.map((item) => [item.itemId, item])), [catalog]);
   const nameOf = (itemId: string) => itemMap.get(itemId)?.displayName || `${itemId} (nama belum tersedia)`;
   const labelOf = (itemId: string) => {
     const item = itemMap.get(itemId);
     return `${nameOf(itemId)} · T${item?.tier ?? "?"}${item?.enchantment ? `.${item.enchantment}` : ""}`;
   };
-  const changeTargets = (next: CraftTarget[]) => { setTargets(next); setResult(undefined); setEstimate(undefined); setPriceState("idle"); setError(""); };
+  const changeTargets = (next: CraftTarget[]) => { priceRequestVersion.current += 1; setTargets(next); setResult(undefined); setEstimate(undefined); setPriceState("idle"); setError(""); };
 
   const addTarget = () => {
     const count = Number(quantity);
@@ -70,16 +84,19 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
 
   const refreshPrices = async (calculation = result) => {
     if (!calculation) return;
+    const version = ++priceRequestVersion.current;
     setPriceState("loading");
     try {
       const snapshot = await priceLoader(calculation.shoppingList.map(({ itemId }) => itemId));
+      if (version !== priceRequestVersion.current) return;
       if (!snapshot) { setEstimate(undefined); setPriceState("offline"); return; }
       setEstimate(estimateBuyOrders({ shoppingList: calculation.shoppingList, prices: snapshot.items, asOf: now().toISOString(), staleAfterHours: 6 }));
       setPriceState(snapshot.items.length ? "ready" : "empty");
-    } catch { setEstimate(undefined); setPriceState("error"); }
+    } catch { if (version === priceRequestVersion.current) { setEstimate(undefined); setPriceState("error"); } }
   };
 
   const calculate = () => {
+    priceRequestVersion.current += 1;
     if (!catalog || targets.length === 0) { setError("Tambahkan minimal satu target crafting."); return; }
     try { const calculation = calculateMaterials({ targets, catalog }); setResult(calculation); setError(""); void refreshPrices(calculation); }
     catch (cause) { setResult(undefined); setError(cause instanceof Error ? cause.message : "Perhitungan gagal."); }
@@ -90,12 +107,18 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
   if (craftable.length === 0) return <main className="shell state"><p className="eyebrow">Catalog empty</p><h1>Belum ada item craftable</h1><p>Ganti fixture katalog dengan export v3 yang memiliki crafting recipe.</p></main>;
 
   return <main className="shell">
-    <header className="hero"><div><p className="eyebrow">Albion Market Lab · Offline planner</p><h1>Crafting plan,<br /><em>without guesswork.</em></h1><p className="lede">Gabungkan banyak target, uraikan refining, dan bawa shopping list yang pasti. Harga menyusul saat data pribadi tersedia.</p></div><div className="status"><span className="dot" /> Catalog ready <b>{craftable.length} recipes</b></div></header>
+    <header className="hero"><div><p className="eyebrow">Albion Market Lab · Private planner</p><h1>Crafting plan,<br /><em>without guesswork.</em></h1><p className="lede">Gabungkan banyak target, uraikan refining, dan gunakan snapshot harga dari receiver pribadi.</p></div><div className="status"><span className="dot" /> Catalog ready <b>{integer.format(craftable.length)} supported{catalog.rejectedCraftableItems ? ` · ${integer.format(catalog.rejectedCraftableItems)} pending` : ""}</b></div></header>
 
     <section className="planner">
       <div className="section-heading"><span>01</span><h2>Target crafting</h2></div>
+      <div className="catalog-filters">
+        <label>Cari equipment<input aria-label="Cari equipment" type="search" placeholder="Nama atau item ID" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+        <label>Tier<select aria-label="Filter tier" value={tier} onChange={(event) => setTier(event.target.value)}><option value="">Semua tier</option>{tiers.map((value) => <option key={value} value={value}>T{value}</option>)}</select></label>
+        <label>Kategori<select aria-label="Filter kategori" value={category} onChange={(event) => setCategory(event.target.value)}><option value="">Semua kategori</option>{categories.map((value) => <option key={value}>{value}</option>)}</select></label>
+      </div>
+      <p className="filter-summary">{integer.format(filteredCraftable.length)} equipment cocok{filteredCraftable.length > 100 ? " · 100 pertama ditampilkan" : ""}</p>
       <div className="target-form">
-        <label>Item<select aria-label="Item crafting" value={selected} onChange={(event) => setSelected(event.target.value)}>{craftable.map((item) => <option key={item.itemId} value={item.itemId}>{labelOf(item.itemId)}</option>)}</select></label>
+        <label>Item<select aria-label="Item crafting" value={selected} onChange={(event) => setSelected(event.target.value)} disabled={visibleCraftable.length === 0}>{visibleCraftable.length === 0 ? <option value="">Tidak ada equipment cocok</option> : visibleCraftable.map((item) => <option key={item.itemId} value={item.itemId}>{labelOf(item.itemId)}</option>)}</select></label>
         <label>Quantity<input aria-label="Quantity" inputMode="numeric" value={quantity} onChange={(event) => setQuantity(event.target.value)} /></label>
         <button type="button" onClick={addTarget}>Tambah item</button>
       </div>
