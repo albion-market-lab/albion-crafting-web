@@ -17,7 +17,7 @@ export async function loadPrices(itemIds: string[]): Promise<PriceSnapshot | nul
     const url = new URL("prices", baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
     url.searchParams.set("server", "East/Asia");
     url.searchParams.set("itemIds", chunk.join(","));
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!response.ok) throw new Error(`Price API returned HTTP ${response.status}.`);
     const value: unknown = await response.json();
     if (!value || typeof value !== "object" || (value as PriceSnapshot).server !== "East/Asia" || !Array.isArray((value as PriceSnapshot).items)) throw new Error("Price API returned an invalid snapshot.");

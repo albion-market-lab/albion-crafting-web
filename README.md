@@ -1,6 +1,6 @@
 # Albion Crafting Web
 
-> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **Task 10 private price integration implemented**.
+> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **Task 11 MVP smoke flow verified**.
 
 Tujuan: dari satu daftar target crafting, pengguna langsung tahu **bahan yang harus dibeli, berapa jumlahnya, di kota mana memasang buy order, dan estimasi modalnya**.
 
@@ -34,8 +34,11 @@ Validasi:
 corepack pnpm lint
 corepack pnpm typecheck
 corepack pnpm test
+corepack pnpm test:smoke
 corepack pnpm build
 ```
+
+Hasil expected versus actual, reproduksi lokal/production, pemeriksaan bundle, dan batasan deployment ada di [Task 11 smoke test](docs/smoke-test.md).
 
 ## Catalog v3
 
@@ -84,7 +87,7 @@ Batas stale saat ini 6 jam dan bukan klaim real-time. Jika input harga belum len
 - **Receiver / Sheet** menyediakan snapshot harga dan timestamp; web tidak memegang kredensial tulis.
 - Seluruh tindakan dalam game (**buy order, refining, crafting, caravan, Black Market sell order**) tetap **manual**.
 
-## Implementasi Task 06/10
+## Implementasi Task 06/10/11
 - React + TypeScript + Vite, satu halaman responsive tanpa login atau database.
 - Add/edit/delete multi-target; item duplicate dijumlahkan sebelum calculator dipanggil.
 - `calculateMaterials()` dari package calculator menjadi satu-satunya calculation engine.
@@ -93,6 +96,7 @@ Batas stale saat ini 6 jam dan bukan klaim real-time. Jika input harga belum len
 - Search nama/ID serta filter tier/kategori hanya merender maksimal 100 hasil agar katalog besar tetap ringan.
 - Task 10 membaca endpoint receiver pribadi, memvalidasi payload, membagi filter lebih dari 100 item menjadi beberapa request, lalu memakai `estimateBuyOrders()` calculator untuk freshness dan rekomendasi BO.
 - Request version mencegah respons harga lama menimpa target terbaru atau target yang sudah diubah.
+- Task 11 mengunci flow dua target golden dari UI sampai recursive refining, shopping list, dan rekomendasi BO partial melalui integration smoke test yang reproducible.
 
 ## Selesai jika
 - Satu plan menampung item berbeda sekaligus dan bisa diedit.

@@ -6,10 +6,11 @@ afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 describe("private price adapter", () => {
   it("requests only the configured read endpoint and validates a successful snapshot", async () => {
     vi.stubEnv("VITE_PRICE_API_URL", "https://receiver.example");
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => Response.json({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T5_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 372, highestBuyObservedAt: "2026-10-29T05:00:00Z", lowestSellPrice: null, lowestSellObservedAt: null }] }));
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => Response.json({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T5_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 372, highestBuyObservedAt: "2026-10-29T05:00:00Z", lowestSellPrice: null, lowestSellObservedAt: null }] }));
     vi.stubGlobal("fetch", fetchMock);
     await expect(loadPrices(["T5_FIBER"])).resolves.toMatchObject({ items: [{ highestBuyPrice: 372 }] });
     expect(String(fetchMock.mock.calls[0]![0])).toBe("https://receiver.example/prices?server=East%2FAsia&itemIds=T5_FIBER");
+    expect(fetchMock.mock.calls[0]![1]?.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("uses offline mode without configuration and rejects malformed payloads", async () => {

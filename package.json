@@ -9,6 +9,7 @@
     "lint": "tsc --noEmit",
     "sync:catalog": "node scripts/sync-catalog.mjs",
     "test": "vitest run",
+    "test:smoke": "vitest run test/smoke.test.tsx",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

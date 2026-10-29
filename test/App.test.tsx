@@ -128,6 +128,8 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     expect(await screen.findByText("Snapshot harga kosong")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
+    expect(screen.getByText("Estimasi modal · unavailable")).toBeVisible();
+    expect(screen.getAllByText("—")).not.toHaveLength(0);
     view.unmount();
 
     const offline = render(<App catalogLoader={loader} priceLoader={async () => null} />);
