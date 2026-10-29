@@ -27,24 +27,36 @@ describe("CategoryTree", () => {
     const TestTree = () => { const [value, setValue] = useState<CategorySelection>("all"); return <CategoryTree value={value} onChange={setValue} />; };
     render(<TestTree />);
     const trigger = screen.getByRole("button", { name: /All Supported/ });
-    await user.click(trigger);
-    expect(screen.getByRole("tree", { name: "Category tree" })).toBeVisible();
-    const equipment = screen.getByText("Equipment").closest("details")!;
-    await user.click(screen.getByText("Equipment")); expect(equipment).toHaveAttribute("open");
-    await user.click(screen.getByText("Equipment")); expect(equipment).not.toHaveAttribute("open");
+    trigger.focus();
+    await user.keyboard("{Enter}");
+    expect(screen.getByLabelText("Category options")).toBeVisible();
+    expect(screen.queryByRole("tree")).not.toBeInTheDocument();
+    expect(screen.queryByRole("treeitem")).not.toBeInTheDocument();
+    await user.tab(); expect(screen.getByRole("button", { name: "All Supported" })).toHaveFocus();
+    await user.tab({ shift: true }); expect(trigger).toHaveFocus();
+    screen.getByText("Equipment").focus(); expect(screen.getByText("Equipment")).toHaveFocus();
+    expect(screen.getByText("Equipment").tagName).toBe("SUMMARY");
     await user.click(screen.getByText("Equipment"));
+    const equipment = screen.getByText("Equipment").closest("details")!;
+    expect(equipment).toHaveAttribute("open");
     await user.click(screen.getByText("Helmet"));
-    await user.click(screen.getByRole("treeitem", { name: "Equipment / Helmet / Cloth" }));
+    screen.getByRole("button", { name: "Equipment / Helmet / Cloth" }).focus();
+    expect(screen.getByRole("button", { name: "Equipment / Helmet / Cloth" })).toHaveFocus();
+    await user.keyboard(" ");
     expect(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ })).toBeVisible();
+    expect(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ })).toHaveFocus();
 
     await user.click(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ }));
-    expect(screen.getByRole("treeitem", { name: /Consumables/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Consumables/ })).toBeDisabled();
+    const reopenedEquipment = screen.getByText("Equipment").closest("details")!;
+    await user.click(screen.getByText("Equipment")); expect(reopenedEquipment).toHaveAttribute("open");
+    await user.click(screen.getByText("Equipment")); expect(reopenedEquipment).not.toHaveAttribute("open");
     await user.keyboard("{Escape}");
-    expect(screen.queryByRole("tree", { name: "Category tree" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Category options")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ })).toHaveFocus();
     await user.click(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ }));
     await user.click(document.body);
-    expect(screen.queryByRole("tree", { name: "Category tree" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Category options")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Equipment \/ Helmet \/ Cloth/ }));
     await user.click(screen.getByRole("button", { name: "Reset filter" }));
     expect(screen.getByRole("button", { name: /All Supported/ })).toBeVisible();
@@ -60,8 +72,8 @@ describe("category filtering with the production catalog", () => {
       await user.clear(search);
       await user.click(screen.getByRole("button", { name: /All Supported|Equipment \// }));
       await user.click(screen.getByText("Equipment"));
-      if (["Bag", "Cape", "Other Equipment"].includes(branch)) await user.click(screen.getByRole("treeitem", { name: `Equipment / ${branch}` }));
-      else { await user.click(screen.getByText(branch)); await user.click(screen.getByRole("treeitem", { name: `Equipment / ${branch} / ${leaf.replace(/ \(.+\)/, "")}` })); }
+      if (["Bag", "Cape", "Other Equipment"].includes(branch)) await user.click(screen.getByRole("button", { name: `Equipment / ${branch}` }));
+      else { await user.click(screen.getByText(branch)); await user.click(screen.getByRole("button", { name: `Equipment / ${branch} / ${leaf.replace(/ \(.+\)/, "")}` })); }
     };
     const expectItem = async (itemId: string) => { await user.type(search, itemId); expect(screen.getByLabelText("Item crafting")).toHaveValue(itemId); };
 
@@ -96,7 +108,7 @@ describe("category filtering with the production catalog", () => {
     await user.click(screen.getByRole("button", { name: "Tambah item" }));
     await user.click(screen.getByRole("button", { name: /All Supported/ }));
     await user.click(screen.getByText("Equipment"));
-    await user.click(screen.getByRole("treeitem", { name: "Equipment / Bag" }));
+    await user.click(screen.getByRole("button", { name: "Equipment / Bag" }));
     expect(screen.getByLabelText("Quantity T4_ARMOR_LEATHER_SET1")).toHaveValue(1);
   });
 });

@@ -119,6 +119,7 @@ describe("multi-target crafting planner", () => {
     expect(screen.getAllByText("stale")).not.toHaveLength(0);
     expect(screen.getAllByText("missing")).not.toHaveLength(0);
     expect(screen.getAllByText("5.184 silver")).toHaveLength(2);
+    expect(screen.getByText("Estimasi modal seluruh Shopping List · partial")).toBeVisible();
     const priceTable = screen.getByRole("table", { name: "Harga Shopping List" });
     expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
     const fiberFilter = screen.getByRole("button", { name: "Filter harga Amberleaf Cotton" });
@@ -126,9 +127,21 @@ describe("multi-target crafting planner", () => {
     expect(fiberFilter).toHaveAttribute("aria-pressed", "true");
     expect(within(priceTable).queryByText("Cotton")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Amberleaf Cotton");
+    expect(screen.getByText("Estimasi modal seluruh Shopping List · partial")).toBeVisible();
+    expect(screen.getAllByText("5.184 silver")).not.toHaveLength(0);
     await user.click(fiberFilter);
     expect(fiberFilter).toHaveAttribute("aria-pressed", "false");
     expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
+    await user.click(fiberFilter);
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(fiberFilter).toHaveAttribute("aria-pressed", "false");
+    await screen.findAllByText("fresh");
+    await user.click(fiberFilter);
+    const targetQuantity = screen.getByLabelText("Quantity T6_ARMOR_CLOTH_SET1");
+    await user.clear(targetQuantity); await user.type(targetQuantity, "2"); await user.tab();
+    expect(screen.queryByRole("button", { name: "Filter harga Amberleaf Cotton" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(await screen.findByRole("button", { name: "Filter harga Amberleaf Cotton" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("distinguishes empty, offline, and failed price sources while preserving materials", async () => {
@@ -139,7 +152,7 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     expect(await screen.findByText("Snapshot harga kosong")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
-    expect(screen.getByText("Estimasi modal · unavailable")).toBeVisible();
+    expect(screen.getByText("Estimasi modal seluruh Shopping List · unavailable")).toBeVisible();
     expect(screen.getAllByText("—")).not.toHaveLength(0);
     expect(screen.queryByText("Rekomendasi")).not.toBeInTheDocument();
     view.unmount();

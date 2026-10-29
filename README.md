@@ -73,7 +73,7 @@ Contoh target (nama bersifat ilustratif, pemilihan sebenarnya menggunakan item I
 
 ### Filter kategori
 
-Tree **Equipment** menyediakan Helmet, Armor, Shoes, Weapon, dan Off-hand dengan cabang Cloth/Leather/Plate; Bag dan Cape tersedia langsung. Breadcrumb pada tombol menunjukkan filter aktif, sedangkan **All Supported**, **Reset filter**, atau **Clear filters** mengembalikan seluruh katalog. Tree dapat ditutup dengan `Escape` atau klik di luar dan tetap dapat digunakan melalui keyboard.
+Dropdown kategori berbasis disclosure native menyediakan **Equipment** → Helmet, Armor, Shoes, Weapon, dan Off-hand dengan cabang Cloth/Leather/Plate; Bag dan Cape tersedia langsung. Breadcrumb pada tombol menunjukkan filter aktif, sedangkan **All Supported**, **Reset filter**, atau **Clear filters** mengembalikan seluruh katalog. Dropdown dapat dinavigasi dengan Tab/Shift+Tab dan Enter/Space, serta ditutup dengan `Escape` atau klik di luar.
 
 Klasifikasi armor mengikuti slot dan material pada ID katalog. Weapon dan Off-hand mengikuti kelompok material resep yang tidak ambigu (`CLOTH`, `LEATHER`, atau `METALBAR`); item yang tidak dapat dipetakan secara aman masuk **Other Equipment**, bukan dihilangkan. Dengan fallback ini, seluruh 6.066 item dalam support artifact tetap dapat dicapai. Consumables, Resources, dan Others sengaja nonaktif sebagai **Coming Soon** karena belum termasuk scope katalog craftable saat ini.
 
