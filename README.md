@@ -1,6 +1,6 @@
 # Albion Crafting Web
 
-> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **Task 06 offline planner implemented**.
+> Web UI pribadi untuk **Multi-Item Crafting Planner** di Albion Market Lab. Status: **Task 10 private price integration implemented**.
 
 Tujuan: dari satu daftar target crafting, pengguna langsung tahu **bahan yang harus dibeli, berapa jumlahnya, di kota mana memasang buy order, dan estimasi modalnya**.
 
@@ -18,7 +18,15 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Buka URL yang ditampilkan Vite. Planner Task 06 sepenuhnya offline setelah asset dimuat dan tidak membutuhkan receiver maupun data harga.
+Buka URL yang ditampilkan Vite. Tanpa konfigurasi API, planner tetap menghitung raw material dalam mode offline.
+
+Untuk membaca snapshot harga dari receiver pribadi:
+
+```bash
+VITE_PRICE_API_URL=https://albion-market-receiver.vercel.app corepack pnpm dev
+```
+
+Variabel ini hanya berisi URL read-only `GET /prices`; jangan pernah menaruh secret Apps Script, ingest, atau kredensial Sheets dalam environment `VITE_*`. Untuk smoke test, hitung target lalu pastikan status harga muncul; tombol **Refresh harga** hanya mengulang pembacaan snapshot pribadi.
 
 Validasi:
 
@@ -75,7 +83,7 @@ Default umur data (misalnya 6 jam) adalah **konfigurasi**, bukan klaim real-time
 - `calculateMaterials()` dari package calculator menjadi satu-satunya calculation engine.
 - Crafting Output, Refining Plan, dan Shopping List tampil tanpa mengarang harga.
 - Catalog loading/error/empty, quantity invalid, nama missing, dan recipe error ditampilkan eksplisit.
-- Integrasi receiver, freshness, rekomendasi BO, dan deployment production tetap scope Task 10/11.
+- Task 10 membaca endpoint receiver pribadi, memvalidasi payload, lalu memakai `estimateBuyOrders()` calculator untuk freshness dan rekomendasi BO. Deployment production tetap scope Task 11.
 
 ## Selesai jika
 - Satu plan menampung item berbeda sekaligus dan bisa diedit.

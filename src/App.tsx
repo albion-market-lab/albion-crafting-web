@@ -1,12 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { calculateMaterials, type CalculationResult, type CatalogData, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
+import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CatalogData, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
 import { loadCatalog } from "./catalog.js";
+import { loadPrices, type PriceSnapshot } from "./prices.js";
 
 interface AppProps {
   catalogLoader?: () => Promise<CatalogData>;
+  priceLoader?: (itemIds: string[]) => Promise<PriceSnapshot | null>;
+  now?: () => Date;
 }
 
 const integer = new Intl.NumberFormat("id-ID");
+const silver = (value: number) => `${integer.format(value)} silver`;
+
+function PriceTable({ estimate, nameOf }: { estimate: BuyOrderEstimateResult; nameOf: (id: string) => string }) {
+  return <><div className="table-wrap"><table className="price-table">
+    <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Bid</th><th>Subtotal</th><th>Observasi</th><th>Status</th></tr></thead>
+    <tbody>{estimate.materials.flatMap((material) => material.candidates.map((candidate) => <tr key={`${material.itemId}:${candidate.city}`}>
+      <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}</small></td><td>{integer.format(material.quantity)}</td><td>{candidate.bidPrice === undefined ? "—" : silver(candidate.bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span></td>
+    </tr>))}</tbody>
+  </table></div><div className="price-summary"><span>Estimasi modal · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.status !== "complete" && <p>Total belum lengkap karena sebagian harga atau cakupan kota tidak tersedia.</p>}</div></>;
+}
 
 function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]; nameOf: (id: string) => string }) {
   return <section className="result-card">
@@ -18,13 +31,15 @@ function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]
   </section>;
 }
 
-export function App({ catalogLoader = loadCatalog }: AppProps) {
+export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now = () => new Date() }: AppProps) {
   const [catalog, setCatalog] = useState<CatalogData>();
   const [loadError, setLoadError] = useState("");
   const [selected, setSelected] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [targets, setTargets] = useState<CraftTarget[]>([]);
   const [result, setResult] = useState<CalculationResult>();
+  const [estimate, setEstimate] = useState<BuyOrderEstimateResult>();
+  const [priceState, setPriceState] = useState<"idle" | "loading" | "offline" | "empty" | "ready" | "error">("idle");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -41,7 +56,7 @@ export function App({ catalogLoader = loadCatalog }: AppProps) {
     const item = itemMap.get(itemId);
     return `${nameOf(itemId)} · T${item?.tier ?? "?"}${item?.enchantment ? `.${item.enchantment}` : ""}`;
   };
-  const changeTargets = (next: CraftTarget[]) => { setTargets(next); setResult(undefined); setError(""); };
+  const changeTargets = (next: CraftTarget[]) => { setTargets(next); setResult(undefined); setEstimate(undefined); setPriceState("idle"); setError(""); };
 
   const addTarget = () => {
     const count = Number(quantity);
@@ -53,9 +68,20 @@ export function App({ catalogLoader = loadCatalog }: AppProps) {
     setQuantity("1");
   };
 
+  const refreshPrices = async (calculation = result) => {
+    if (!calculation) return;
+    setPriceState("loading");
+    try {
+      const snapshot = await priceLoader(calculation.shoppingList.map(({ itemId }) => itemId));
+      if (!snapshot) { setEstimate(undefined); setPriceState("offline"); return; }
+      setEstimate(estimateBuyOrders({ shoppingList: calculation.shoppingList, prices: snapshot.items, asOf: now().toISOString(), staleAfterHours: 6 }));
+      setPriceState(snapshot.items.length ? "ready" : "empty");
+    } catch { setEstimate(undefined); setPriceState("error"); }
+  };
+
   const calculate = () => {
     if (!catalog || targets.length === 0) { setError("Tambahkan minimal satu target crafting."); return; }
-    try { setResult(calculateMaterials({ targets, catalog })); setError(""); }
+    try { const calculation = calculateMaterials({ targets, catalog }); setResult(calculation); setError(""); void refreshPrices(calculation); }
     catch (cause) { setResult(undefined); setError(cause instanceof Error ? cause.message : "Perhitungan gagal."); }
   };
 
@@ -82,7 +108,13 @@ export function App({ catalogLoader = loadCatalog }: AppProps) {
       <div className="section-heading full"><span>02</span><h2>Hasil perhitungan</h2><p>{result.craftOutputs.length} output · {result.shoppingList.length} bahan mentah</p></div>
       <PlanTable title="Crafting Output" rows={result.craftOutputs} nameOf={nameOf} />
       <PlanTable title="Refining Plan" rows={result.refiningPlan} nameOf={nameOf} />
-      <section className="result-card shopping"><div className="section-heading"><span>Buy</span><h2>Shopping List</h2></div><div className="shopping-grid">{result.shoppingList.map((item) => <article key={item.itemId}><span>{nameOf(item.itemId)}</span><small>{item.itemId}</small><b>{integer.format(item.quantity)}</b></article>)}</div><div className="price-empty"><span>Estimasi modal</span><strong>Belum ada data harga</strong><p>Task 06 berjalan sepenuhnya offline. Tidak ada harga yang dikarang atau dianggap nol.</p></div></section>
+      <section className="result-card shopping"><div className="section-heading price-heading"><span>Buy</span><h2>Shopping List</h2><button type="button" onClick={() => void refreshPrices()} disabled={priceState === "loading"}>Refresh harga</button></div><div className="shopping-grid">{result.shoppingList.map((item) => <article key={item.itemId}><span>{nameOf(item.itemId)}</span><small>{item.itemId}</small><b>{integer.format(item.quantity)}</b></article>)}</div>
+        {priceState === "loading" && <div className="price-empty" role="status"><strong>Memuat snapshot harga…</strong></div>}
+        {priceState === "offline" && <div className="price-empty"><strong>Mode offline</strong><p>Raw material tetap dihitung. Atur VITE_PRICE_API_URL untuk membaca receiver pribadi.</p></div>}
+        {priceState === "empty" && estimate && <><div className="price-empty"><strong>Snapshot harga kosong</strong><p>Receiver merespons, tetapi material ini belum memiliki hasil scan.</p></div><PriceTable estimate={estimate} nameOf={nameOf} /></>}
+        {priceState === "error" && <div className="price-empty error" role="alert"><strong>Receiver harga tidak dapat dihubungi</strong><p>Perhitungan material tetap tersedia. Coba refresh setelah koneksi pulih.</p></div>}
+        {priceState === "ready" && estimate && <PriceTable estimate={estimate} nameOf={nameOf} />}
+      </section>
       {result.recipeWarnings.length > 0 && <section className="warnings"><h2>Catatan recipe</h2>{result.recipeWarnings.map((warning) => <p key={`${warning.code}:${warning.itemId}`}>{warning.itemId}: {warning.message}</p>)}</section>}
     </div>}
     <footer>Private data only <span>•</span> No community prices <span>•</span> Manual in-game actions</footer>

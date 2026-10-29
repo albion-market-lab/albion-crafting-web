@@ -7,6 +7,7 @@ import { App } from "../src/App.js";
 
 const catalog = catalogJson as CatalogData;
 const loader = async () => catalog;
+const now = () => new Date("2026-10-29T06:00:00Z");
 
 describe("multi-target crafting planner", () => {
   it("aggregates duplicate targets and renders calculator results", async () => {
@@ -34,7 +35,7 @@ describe("multi-target crafting planner", () => {
     expect(screen.getByRole("heading", { name: "Shopping List" })).toBeVisible();
     const fiber = screen.getByText("T6_FIBER").closest("article")!;
     expect(within(fiber).getByText("6.400")).toBeVisible();
-    expect(screen.getByText("Belum ada data harga")).toBeVisible();
+    expect(await screen.findByText("Mode offline")).toBeVisible();
   });
 
   it("supports editing and deleting targets", async () => {
@@ -86,5 +87,44 @@ describe("multi-target crafting planner", () => {
     nameless.items[0]!.nameStatus = "name_missing";
     render(<App catalogLoader={async () => nameless} />);
     expect(await screen.findByRole("option", { name: /T6_ARMOR_CLOTH_SET1 \(nama belum tersedia\)/ })).toBeVisible();
+  });
+
+  it("renders successful mixed fresh, stale, and missing private prices", async () => {
+    const user = userEvent.setup();
+    render(<App catalogLoader={loader} now={now} priceLoader={async () => ({ server: "East/Asia", items: [
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, highestBuyPrice: 100, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 80, highestBuyObservedAt: "2026-10-28T05:00:00Z" },
+    ] })} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(await screen.findAllByText("fresh")).not.toHaveLength(0);
+    expect(screen.getAllByText("stale")).not.toHaveLength(0);
+    expect(screen.getAllByText("missing")).not.toHaveLength(0);
+    expect(screen.getAllByText("5.184 silver")).toHaveLength(2);
+  });
+
+  it("distinguishes empty, offline, and failed price sources while preserving materials", async () => {
+    const user = userEvent.setup();
+    const view = render(<App catalogLoader={loader} priceLoader={async () => ({ server: "East/Asia", items: [] })} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(await screen.findByText("Snapshot harga kosong")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
+    view.unmount();
+
+    const offline = render(<App catalogLoader={loader} priceLoader={async () => null} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(await screen.findByText("Mode offline")).toBeVisible();
+    offline.unmount();
+
+    render(<App catalogLoader={loader} priceLoader={async () => { throw new Error("offline"); }} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("tidak dapat dihubungi");
   });
 });
