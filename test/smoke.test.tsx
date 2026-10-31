@@ -14,12 +14,16 @@ describe("Task 11 MVP smoke flow", () => {
   it("runs two real targets through golden refining, shopping, and honest mixed-price UX", async () => {
     const user = userEvent.setup();
     const priceLoader = vi.fn(async (itemIds: string[]) => ({ server: "East/Asia" as const, items: [
-      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, highestBuyPrice: 100, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
-      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 80, highestBuyObservedAt: "2026-10-28T05:00:00Z" },
-      { server: "East/Asia", itemId: "T6_FIBER", city: "Lymhurst", quality: 1, highestBuyPrice: 120, highestBuyObservedAt: "2026-10-29T04:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, highestBuyPrice: 80, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 85, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Lymhurst", quality: 1, highestBuyPrice: 120, highestBuyObservedAt: "2026-10-28T04:00:00Z" },
       { server: "East/Asia", itemId: "T6_FIBER", city: "Fort Sterling", quality: 1, highestBuyPrice: null, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
     ] }));
-    render(<App catalogLoader={async () => catalog} priceLoader={priceLoader} now={now} />);
+    const activityLoader = vi.fn(async () => ({ server: "East/Asia" as const, items: [
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, averageDailyUnits: 1_000, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, averageDailyUnits: 50_000, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+    ] }));
+    render(<App catalogLoader={async () => catalog} priceLoader={priceLoader} activityLoader={activityLoader} now={now} />);
 
     const search = await screen.findByLabelText("Cari equipment");
     const quantity = screen.getByLabelText("Quantity");
@@ -51,9 +55,9 @@ describe("Task 11 MVP smoke flow", () => {
     expect(screen.getAllByText("missing")).not.toHaveLength(0);
     const martlock = screen.getByText("Rekomendasi").closest("tr")!;
     expect(within(martlock).getByText("Martlock")).toBeVisible();
-    expect(within(martlock).getByText("81 silver")).toBeVisible();
-    expect(within(martlock).getByText("stale")).toBeVisible();
-    expect(screen.getAllByText("518.400 silver")).toHaveLength(2);
-    expect(screen.getByText(/Estimasi modal seluruh Shopping List · partial/)).toBeVisible();
+    expect(within(martlock).getByText("86 silver")).toBeVisible();
+    expect(within(martlock).getByText("fresh")).toBeVisible();
+    expect(within(martlock).getByText("50.000")).toBeVisible();
+    expect(screen.getByText(/Estimasi modal Best Value · partial/)).toBeVisible();
   });
 });

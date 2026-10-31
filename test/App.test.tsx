@@ -118,8 +118,8 @@ describe("multi-target crafting planner", () => {
     expect(await screen.findAllByText("fresh")).not.toHaveLength(0);
     expect(screen.getAllByText("stale")).not.toHaveLength(0);
     expect(screen.getAllByText("missing")).not.toHaveLength(0);
-    expect(screen.getAllByText("5.184 silver")).toHaveLength(2);
-    expect(screen.getByText("Estimasi modal seluruh Shopping List · partial")).toBeVisible();
+    expect(screen.getAllByText("5.184 silver")).toHaveLength(1);
+    expect(screen.getByText("Estimasi modal Best Value · unavailable")).toBeVisible();
     const priceTable = screen.getByRole("table", { name: "Harga Shopping List" });
     expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
     const fiberFilter = screen.getByRole("button", { name: "Filter harga Amberleaf Cotton" });
@@ -127,7 +127,7 @@ describe("multi-target crafting planner", () => {
     expect(fiberFilter).toHaveAttribute("aria-pressed", "true");
     expect(within(priceTable).queryByText("Cotton")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Amberleaf Cotton");
-    expect(screen.getByText("Estimasi modal seluruh Shopping List · partial")).toBeVisible();
+    expect(screen.getByText("Estimasi modal Best Value · unavailable")).toBeVisible();
     expect(screen.getAllByText("5.184 silver")).not.toHaveLength(0);
     await user.click(fiberFilter);
     expect(fiberFilter).toHaveAttribute("aria-pressed", "false");
@@ -152,7 +152,7 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     expect(await screen.findByText("Snapshot harga kosong")).toBeVisible();
     expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
-    expect(screen.getByText("Estimasi modal seluruh Shopping List · unavailable")).toBeVisible();
+    expect(screen.getByText("Estimasi modal Best Value · unavailable")).toBeVisible();
     expect(screen.getAllByText("—")).not.toHaveLength(0);
     expect(screen.queryByText("Rekomendasi")).not.toBeInTheDocument();
     view.unmount();
@@ -187,9 +187,9 @@ describe("multi-target crafting planner", () => {
     await user.tab();
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     second.resolve({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 200, highestBuyObservedAt: "2026-10-29T05:00:00Z" }] });
-    expect(await screen.findAllByText("25.728 silver")).toHaveLength(2);
+    expect(await screen.findAllByText("25.728 silver")).toHaveLength(1);
     await act(async () => { first.resolve({ server: "East/Asia", items: [{ server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 1, highestBuyObservedAt: "2026-10-29T05:00:00Z" }] }); await first.promise; });
-    await waitFor(() => expect(screen.getAllByText("25.728 silver")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText("25.728 silver")).toHaveLength(1));
     expect(screen.queryByText("128 silver")).not.toBeInTheDocument();
   });
 

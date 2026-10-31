@@ -1,31 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
 import { loadCatalog, type WebCatalogData } from "./catalog.js";
-import { loadPrices, type PriceSnapshot } from "./prices.js";
+import { loadActivity, loadPrices, type ActivitySnapshot, type PriceSnapshot } from "./prices.js";
 import { CategoryTree } from "./CategoryTree.js";
 import { buildCategoryAssignments, type CategorySelection } from "./categories.js";
 
 interface AppProps {
   catalogLoader?: () => Promise<WebCatalogData>;
   priceLoader?: (itemIds: string[]) => Promise<PriceSnapshot | null>;
+  activityLoader?: (itemIds: string[]) => Promise<ActivitySnapshot | null>;
   now?: () => Date;
 }
 
 const integer = new Intl.NumberFormat("id-ID");
 const silver = (value: number) => `${integer.format(value)} silver`;
+const reasonLabel = {
+  ELIGIBLE: "Layak", PRICE_TOO_HIGH: "Harga terlalu tinggi", LOW_TRADING_ACTIVITY: "Aktivitas rendah",
+  INSUFFICIENT_HISTORY: "History belum cukup", STALE_MARKET_DATA: "Harga stale", MISSING_MARKET_DATA: "Harga tidak tersedia",
+  NO_ECONOMIC_ADVANTAGE: "Bid tidak di bawah Sell Order",
+} as const;
 
 function PriceTable({ estimate, nameOf, itemFilter }: { estimate: BuyOrderEstimateResult; nameOf: (id: string) => string; itemFilter?: string }) {
   const materials = itemFilter ? estimate.materials.filter(({ itemId }) => itemId === itemFilter) : estimate.materials;
   return <><div className="table-wrap"><table className="price-table" aria-label="Harga Shopping List">
-    <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Bid</th><th>Subtotal</th><th>Observasi</th><th>Status</th></tr></thead>
+    <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Competitive BO</th><th>Subtotal</th><th>Terjual / hari</th><th>Observasi</th><th>Status</th></tr></thead>
     <tbody>{materials.flatMap((material) => material.candidates.map((candidate) => {
       const recommended = material.suggestedCity === candidate.city;
       const bidPrice = recommended ? material.suggestedBidPrice : candidate.bidPrice;
       return <tr className={recommended ? "recommended-price" : undefined} key={`${material.itemId}:${candidate.city}`}>
-        <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span></td>
+        <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{material.cheapestCity === candidate.city && <span className="price-cheapest">Termurah</span>}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.averageDailyUnits === undefined ? "—" : <>{integer.format(Math.round(candidate.averageDailyUnits))}<small>{candidate.activityCoverageDays} hari lengkap</small></>}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span><small>{reasonLabel[candidate.bestValueReason]}</small></td>
       </tr>;
     }))}</tbody>
-  </table></div><div className="price-summary"><span>Estimasi modal seluruh Shopping List · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.status !== "complete" && <p>Total belum lengkap karena sebagian harga atau cakupan kota tidak tersedia.</p>}</div></>;
+  </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.estimatedTotal === null && <p>Total Best Value belum tersedia. Estimasi termurah berbasis harga saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}</div></>;
 }
 
 function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]; nameOf: (id: string) => string }) {
@@ -38,7 +44,7 @@ function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]
   </section>;
 }
 
-export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now = () => new Date() }: AppProps) {
+export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, activityLoader = loadActivity, now = () => new Date() }: AppProps) {
   const [catalog, setCatalog] = useState<WebCatalogData>();
   const [loadError, setLoadError] = useState("");
   const [selected, setSelected] = useState("");
@@ -104,10 +110,11 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, now
     const version = ++priceRequestVersion.current;
     setPriceState("loading");
     try {
-      const snapshot = await priceLoader(calculation.shoppingList.map(({ itemId }) => itemId));
+      const itemIds = calculation.shoppingList.map(({ itemId }) => itemId);
+      const [snapshot, activityResult] = await Promise.all([priceLoader(itemIds), activityLoader(itemIds).catch(() => null)]);
       if (version !== priceRequestVersion.current) return;
       if (!snapshot) { setEstimate(undefined); setPriceState("offline"); return; }
-      setEstimate(estimateBuyOrders({ shoppingList: calculation.shoppingList, prices: snapshot.items, asOf: now().toISOString(), staleAfterHours: 6 }));
+      setEstimate(estimateBuyOrders({ shoppingList: calculation.shoppingList, prices: snapshot.items, ...(activityResult ? { activity: activityResult.items } : {}), asOf: now().toISOString(), staleAfterHours: 6 }));
       setPriceState(snapshot.items.length ? "ready" : "empty");
     } catch { if (version === priceRequestVersion.current) { setEstimate(undefined); setPriceState("error"); } }
   };
