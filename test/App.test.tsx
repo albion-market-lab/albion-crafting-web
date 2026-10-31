@@ -121,6 +121,10 @@ describe("multi-target crafting planner", () => {
     expect(screen.getAllByText("5.184 silver")).toHaveLength(1);
     expect(screen.getByText("Estimasi modal Best Value · unavailable")).toBeVisible();
     const priceTable = screen.getByRole("table", { name: "Harga Shopping List" });
+    const cheapest = within(priceTable).getByText("Termurah").closest("tr")!;
+    expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
+    expect(within(cheapest).queryByText("Martlock")).not.toBeInTheDocument();
+    expect(screen.getByText(/Cakupan kota parsial/)).toBeVisible();
     expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
     const fiberFilter = screen.getByRole("button", { name: "Filter harga Amberleaf Cotton" });
     await user.click(fiberFilter);

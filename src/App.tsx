@@ -22,6 +22,7 @@ const reasonLabel = {
 
 function PriceTable({ estimate, nameOf, itemFilter }: { estimate: BuyOrderEstimateResult; nameOf: (id: string) => string; itemFilter?: string }) {
   const materials = itemFilter ? estimate.materials.filter(({ itemId }) => itemId === itemFilter) : estimate.materials;
+  const hasPartialCoverage = materials.some(({ coverage }) => coverage !== "complete");
   return <><div className="table-wrap"><table className="price-table" aria-label="Harga Shopping List">
     <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Competitive BO</th><th>Subtotal</th><th>Terjual / hari</th><th>Observasi</th><th>Status</th></tr></thead>
     <tbody>{materials.flatMap((material) => material.candidates.map((candidate) => {
@@ -31,7 +32,7 @@ function PriceTable({ estimate, nameOf, itemFilter }: { estimate: BuyOrderEstima
         <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{material.cheapestCity === candidate.city && <span className="price-cheapest">Termurah</span>}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.averageDailyUnits === undefined ? "—" : <>{integer.format(Math.round(candidate.averageDailyUnits))}<small>{candidate.activityCoverageDays} hari lengkap</small></>}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span><small>{reasonLabel[candidate.bestValueReason]}</small></td>
       </tr>;
     }))}</tbody>
-  </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.estimatedTotal === null && <p>Total Best Value belum tersedia. Estimasi termurah berbasis harga saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}</div></>;
+  </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.estimatedTotal === null && <p>Total Best Value belum tersedia. Estimasi termurah berbasis harga fresh saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}{hasPartialCoverage && <p>Cakupan kota parsial; rekomendasi tidak menyatakan kota terbaik secara global.</p>}</div></>;
 }
 
 function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]; nameOf: (id: string) => string }) {

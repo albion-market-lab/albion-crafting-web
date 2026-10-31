@@ -58,6 +58,8 @@ describe("Task 11 MVP smoke flow", () => {
     expect(within(martlock).getByText("86 silver")).toBeVisible();
     expect(within(martlock).getByText("fresh")).toBeVisible();
     expect(within(martlock).getByText("50.000")).toBeVisible();
+    const cheapest = screen.getByText("Termurah").closest("tr")!;
+    expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
     expect(screen.getByText(/Estimasi modal Best Value · partial/)).toBeVisible();
   });
 });
