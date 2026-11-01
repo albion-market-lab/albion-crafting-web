@@ -37,14 +37,18 @@ describe("Task 11 MVP smoke flow", () => {
     }
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
 
-    for (const item of expected.craftOutputs) {
-      const row = screen.getAllByText(item.itemId).map((node) => node.closest("tr")).find(Boolean)!;
-      expect(within(row).getAllByRole("cell")[1]).toHaveTextContent(String(item.requiredQuantity));
-    }
-    for (const item of expected.refiningPlan) {
-      const row = screen.getByText(item.itemId).closest("tr")!;
-      expect(within(row).getAllByRole("cell")[1]).toHaveTextContent(new Intl.NumberFormat("id-ID").format(item.requiredQuantity));
-    }
+    const breakdown = screen.getByRole("heading", { name: /Crafting Output/ }).closest("section")!;
+    for (const item of expected.craftOutputs) expect(within(breakdown).getByText(new RegExp(`${item.itemId} ·`)).closest("summary")).toHaveTextContent(`Craft ${new Intl.NumberFormat("id-ID").format(item.requiredQuantity)}`);
+    await user.click(within(breakdown).getByText(/T6_ARMOR_CLOTH_SET1 ·/).closest("summary")!);
+    await user.click(within(breakdown).getByText(/T5_SHOES_PLATE_SET1 ·/).closest("summary")!);
+    expect(within(screen.getByRole("table", { name: "Kebutuhan bahan Master's Scholar Robe" })).getByText("1.600")).toBeVisible();
+    expect(within(screen.getByRole("table", { name: "Kebutuhan bahan Expert's Soldier Boots" })).getByText("160")).toBeVisible();
+    const refining = screen.getByRole("heading", { name: /Refining Plan/ }).closest("section")!;
+    for (const item of expected.refiningPlan) expect(within(refining).getAllByText(new RegExp(`^${item.itemId} ·`)).find((node) => node.closest("summary"))!.closest("summary")).toHaveTextContent(`Refine ${new Intl.NumberFormat("id-ID").format(item.requiredQuantity)}`);
+    await user.click(within(refining).getByText(/T6_CLOTH ·/).closest("summary")!);
+    const t6Cloth = screen.getByRole("table", { name: "Kebutuhan bahan Lavish Cloth" });
+    expect(within(t6Cloth).getByText("Amberleaf Cotton")).toBeVisible();
+    expect(within(t6Cloth).getByText("6.400")).toBeVisible();
     for (const item of expected.shoppingList) {
       const card = screen.getByText(`(${item.itemId})`).closest("article")!;
       expect(within(card).getByText(new Intl.NumberFormat("id-ID").format(item.quantity))).toBeVisible();

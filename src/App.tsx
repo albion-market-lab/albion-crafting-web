@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CraftTarget, type ProcessPlan } from "@albion-market-lab/crafting-calculator";
+import { calculateMaterials, estimateBuyOrders, type BuyOrderEstimateResult, type CalculationResult, type CraftTarget, type ProcessMaterialBreakdown } from "@albion-market-lab/crafting-calculator";
 import { loadCatalog, type WebCatalogData } from "./catalog.js";
 import { loadActivity, loadPrices, type ActivitySnapshot, type PriceSnapshot } from "./prices.js";
 import { CategoryTree } from "./CategoryTree.js";
@@ -44,13 +44,17 @@ function PriceTable({ estimate, nameOf, itemFilter }: { estimate: BuyOrderEstima
   </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong><p>Estimasi Hari (Volume Pasar) = jumlah kebutuhan ÷ 100% rata-rata unit terjual harian; bukan jaminan Buy Order terisi.</p>{estimate.estimatedTotal === null && <p>Tidak ada rekomendasi lengkap yang memenuhi target maksimal 2 hari. Estimasi termurah berbasis harga fresh saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}{hasPartialCoverage && <p>Cakupan harga kota parsial; label Termurah hanya membandingkan harga fresh yang tersedia.</p>}{hasPartialActivityCoverage && <p>Rekomendasi berdasarkan kota yang memiliki data aktivitas valid. Kota lain belum dapat dibandingkan sepenuhnya.</p>}</div></>;
 }
 
-function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]; nameOf: (id: string) => string }) {
-  return <section className="result-card">
+function IngredientBreakdownList({ title, action, ingredientHeader, rows, nameOf, metaOf }: { title: string; action: string; ingredientHeader: string; rows: ProcessMaterialBreakdown[]; nameOf: (id: string) => string; metaOf: (id: string) => string }) {
+  return <section className="result-card process-breakdown">
     <div className="section-heading"><span>Plan</span><h2>{title}</h2></div>
-    {rows.length === 0 ? <p className="muted">Tidak ada proses yang diperlukan.</p> : <div className="table-wrap"><table>
-      <thead><tr><th>Item</th><th>Butuh</th><th>Proses</th><th>Output</th><th>Surplus</th></tr></thead>
-      <tbody>{rows.map((row) => <tr key={row.itemId}><td><strong>{nameOf(row.itemId)}</strong><small>{row.itemId}</small></td><td>{integer.format(row.requiredQuantity)}</td><td>{integer.format(row.processCount)}</td><td>{integer.format(row.outputQuantity)}</td><td>{integer.format(row.surplusQuantity)}</td></tr>)}</tbody>
-    </table></div>}
+    {rows.length === 0 ? <p className="muted">Tidak ada proses yang diperlukan.</p> : <div className="process-breakdown-list">{rows.map((row) => <details key={row.itemId} open={rows.length === 1}>
+      <summary><span><strong>{nameOf(row.itemId)}</strong><small>{row.itemId} · {metaOf(row.itemId)}</small></span><b>{action} {integer.format(row.requiredQuantity)}</b></summary>
+      {row.surplusQuantity > 0 && <p className="surplus-note">{integer.format(row.processCount)} proses menghasilkan {integer.format(row.outputQuantity)} unit · surplus {integer.format(row.surplusQuantity)}.</p>}
+      <div className="table-wrap"><table aria-label={`Kebutuhan bahan ${nameOf(row.itemId)}`}>
+        <thead><tr><th>{ingredientHeader}</th><th>Quantity</th></tr></thead>
+        <tbody>{row.ingredients.map((ingredient) => <tr key={ingredient.itemId}><td><strong>{nameOf(ingredient.itemId)}</strong><small>{ingredient.itemId} · {metaOf(ingredient.itemId)}</small></td><td>{integer.format(ingredient.quantity)}</td></tr>)}</tbody>
+      </table></div>
+    </details>)}</div>}
   </section>;
 }
 
@@ -102,6 +106,10 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
   const labelOf = (itemId: string) => {
     const item = itemMap.get(itemId);
     return `${nameOf(itemId)} · T${item?.tier ?? "?"}${item?.enchantment ? `.${item.enchantment}` : ""}`;
+  };
+  const tierOf = (itemId: string) => {
+    const item = itemMap.get(itemId);
+    return item?.tier === undefined ? "Tier tidak diketahui" : `T${item.tier}${item.enchantment ? `.${item.enchantment}` : ""}`;
   };
   const changeTargets = (next: CraftTarget[]) => { priceRequestVersion.current += 1; setTargets(next); setResult(undefined); setEstimate(undefined); setShoppingItemFilter(undefined); setPriceState("idle"); setError(""); };
 
@@ -166,8 +174,8 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
 
     {result && <div className="results">
       <div className="section-heading full"><span>02</span><h2>Hasil perhitungan</h2><p>{result.craftOutputs.length} output · {result.shoppingList.length} bahan mentah</p></div>
-      <PlanTable title="Crafting Output" rows={result.craftOutputs} nameOf={nameOf} />
-      <PlanTable title="Refining Plan" rows={result.refiningPlan} nameOf={nameOf} />
+      <IngredientBreakdownList title="Crafting Output — Kebutuhan Bahan per Item" action="Craft" ingredientHeader="Material" rows={result.craftingMaterialBreakdown} nameOf={nameOf} metaOf={tierOf} />
+      <IngredientBreakdownList title="Refining Plan — Kebutuhan Bahan Refining" action="Refine" ingredientHeader="Required Input" rows={result.refiningMaterialBreakdown} nameOf={nameOf} metaOf={tierOf} />
       <section className="result-card shopping"><div className="section-heading price-heading"><span>Buy</span><h2>Shopping List</h2><button type="button" onClick={() => void refreshPrices()} disabled={priceState === "loading"}>Refresh harga</button></div><div className="shopping-grid">{result.shoppingList.map((item) => <article className={shoppingItemFilter === item.itemId ? "active" : undefined} key={item.itemId}><button type="button" aria-label={`Filter harga ${nameOf(item.itemId)}`} aria-pressed={shoppingItemFilter === item.itemId} onClick={() => setShoppingItemFilter(shoppingItemFilter === item.itemId ? undefined : item.itemId)}><span><strong>{nameOf(item.itemId)}</strong> <small className="item-id">({item.itemId})</small></span><small>{materialMetaOf(item.itemId)}</small><b>{integer.format(item.quantity)}</b></button></article>)}</div>
         {shoppingItemFilter && <p className="shopping-filter-status" role="status">Menampilkan harga untuk {nameOf(shoppingItemFilter)} · klik bahan aktif untuk menampilkan semua.</p>}
         {priceState === "loading" && <div className="price-empty" role="status"><strong>Memuat snapshot harga…</strong></div>}

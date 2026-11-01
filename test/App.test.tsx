@@ -38,13 +38,17 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: "Tambah item" }));
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
 
-    expect(screen.getByRole("heading", { name: "Crafting Output" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Crafting Output/ })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Refining Plan/ })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Shopping List" })).toBeVisible();
     const fiber = screen.getByText("(T6_FIBER)").closest("article")!;
     expect(within(fiber).getByText("6.400")).toBeVisible();
     expect(within(fiber).getByText("Fiber · T6")).toBeVisible();
     expect(await screen.findByText("Mode offline")).toBeVisible();
+    const scholar = screen.getByText(/T6_ARMOR_CLOTH_SET1 · T6/).closest("details")!;
+    expect(within(scholar).getByText("Craft 100")).toBeVisible();
+    await user.click(within(scholar).getByText(/T6_ARMOR_CLOTH_SET1 · T6/).closest("summary")!);
+    expect(within(screen.getByRole("table", { name: "Kebutuhan bahan Master's Scholar Robe" })).getByText("1.600")).toBeVisible();
   });
 
   it("supports editing and deleting targets", async () => {
@@ -96,6 +100,18 @@ describe("multi-target crafting planner", () => {
     nameless.items[0]!.nameStatus = "name_missing";
     render(<App catalogLoader={async () => nameless} />);
     expect(await screen.findByRole("option", { name: /T6_ARMOR_CLOTH_SET1 \(nama belum tersedia\)/ })).toBeVisible();
+  });
+
+  it("falls back to the ingredient item ID when its display name is missing", async () => {
+    const user = userEvent.setup();
+    const nameless = structuredClone(catalog);
+    nameless.items.find(({ itemId }) => itemId === "T6_CLOTH")!.displayName = "";
+    render(<App catalogLoader={async () => nameless} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    const breakdown = screen.getByRole("heading", { name: /Crafting Output/ }).closest("section")!;
+    expect(within(breakdown).getByText("T6_CLOTH (nama belum tersedia)")).toBeVisible();
   });
 
   it("searches and filters equipment without rendering the whole catalog", async () => {
@@ -216,7 +232,7 @@ describe("multi-target crafting planner", () => {
     await user.click(screen.getByRole("button", { name: "Tambah item" }));
     await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
     expect(await screen.findByText("Snapshot harga kosong")).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Refining Plan" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: /Refining Plan/ })).toBeVisible();
     expect(screen.getByText("Estimasi modal Best Value · unavailable")).toBeVisible();
     expect(screen.getAllByText("—")).not.toHaveLength(0);
     expect(screen.queryByText("Rekomendasi")).not.toBeInTheDocument();

@@ -20,4 +20,29 @@ describe("full catalog snapshot", () => {
     expect(result.recipeWarnings).toEqual([]);
     expect(support.supportedCraftableIds).not.toContain("T4_CAPEITEM_FW_BRIDGEWATCH");
   });
+
+  it("projects direct real-recipe ingredients for robe, hammer, and holy staff", () => {
+    const catalog = catalogJson as CatalogData;
+    const result = calculateMaterials({ catalog, targets: [
+      { itemId: "T4_ARMOR_CLOTH_SET1", quantity: 30 },
+      { itemId: "T5_MAIN_HOLYSTAFF", quantity: 20 },
+      { itemId: "T6_2H_HAMMER", quantity: 10 },
+    ] });
+    expect(result.craftingMaterialBreakdown).toEqual([
+      { itemId: "T4_ARMOR_CLOTH_SET1", requiredQuantity: 30, processCount: 30, outputQuantity: 30, surplusQuantity: 0, ingredients: [{ itemId: "T4_CLOTH", quantity: 480 }] },
+      { itemId: "T5_MAIN_HOLYSTAFF", requiredQuantity: 20, processCount: 20, outputQuantity: 20, surplusQuantity: 0, ingredients: [{ itemId: "T5_PLANKS", quantity: 320 }, { itemId: "T5_CLOTH", quantity: 160 }] },
+      { itemId: "T6_2H_HAMMER", requiredQuantity: 10, processCount: 10, outputQuantity: 10, surplusQuantity: 0, ingredients: [{ itemId: "T6_METALBAR", quantity: 200 }, { itemId: "T6_CLOTH", quantity: 120 }] },
+    ]);
+    expect(result.refiningMaterialBreakdown.find(({ itemId }) => itemId === "T6_METALBAR")).toMatchObject({
+      requiredQuantity: 200, processCount: 200, ingredients: [{ itemId: "T6_ORE", quantity: 800 }, { itemId: "T5_METALBAR", quantity: 200 }],
+    });
+  });
+
+  it("keeps a 45-item crafting breakdown independently addressable", () => {
+    const catalog = catalogJson as CatalogData;
+    const supported = (supportJson as { supportedCraftableIds: string[] }).supportedCraftableIds.slice(0, 45);
+    const result = calculateMaterials({ catalog, targets: supported.map((itemId) => ({ itemId, quantity: 1 })) });
+    expect(result.craftingMaterialBreakdown).toHaveLength(45);
+    expect(new Set(result.craftingMaterialBreakdown.map(({ itemId }) => itemId)).size).toBe(45);
+  });
 });
