@@ -148,6 +148,38 @@ describe("multi-target crafting planner", () => {
     expect(await screen.findByRole("button", { name: "Filter harga Amberleaf Cotton" })).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("updates estimated days and recommendation when the required quantity changes", async () => {
+    const user = userEvent.setup();
+    const priceLoader = async () => ({ server: "East/Asia" as const, items: [
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, highestBuyPrice: 100, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, highestBuyPrice: 110, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+    ] });
+    const activityLoader = async () => ({ server: "East/Asia" as const, items: [
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, averageDailyUnits: 40, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+      { server: "East/Asia", itemId: "T6_FIBER", city: "Martlock", quality: 1, averageDailyUnits: 100, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+    ] });
+    render(<App catalogLoader={loader} now={now} priceLoader={priceLoader} activityLoader={activityLoader} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    const filter = await screen.findByRole("button", { name: "Filter harga Amberleaf Cotton" });
+    await user.click(filter);
+    let recommended = screen.getByText("Rekomendasi").closest("tr")!;
+    expect(within(recommended).getByText("Bridgewatch")).toBeVisible();
+    expect(within(recommended).getByText("1,6 hari")).toBeVisible();
+
+    const targetQuantity = screen.getByLabelText("Quantity T6_ARMOR_CLOTH_SET1");
+    await user.clear(targetQuantity); await user.type(targetQuantity, "2"); await user.tab();
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    await user.click(await screen.findByRole("button", { name: "Filter harga Amberleaf Cotton" }));
+    recommended = screen.getByText("Rekomendasi").closest("tr")!;
+    expect(within(recommended).getByText("Martlock")).toBeVisible();
+    expect(within(recommended).getByText("1,28 hari")).toBeVisible();
+    const cheapest = screen.getByText("Termurah").closest("tr")!;
+    expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
+    expect(within(cheapest).getByText("Lebih dari 2 hari")).toBeVisible();
+  });
+
   it("distinguishes empty, offline, and failed price sources while preserving materials", async () => {
     const user = userEvent.setup();
     const view = render(<App catalogLoader={loader} priceLoader={async () => ({ server: "East/Asia", items: [] })} />);

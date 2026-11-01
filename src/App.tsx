@@ -14,25 +14,27 @@ interface AppProps {
 
 const integer = new Intl.NumberFormat("id-ID");
 const silver = (value: number) => `${integer.format(value)} silver`;
+const decimal = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 });
+const estimatedDays = (value?: number) => value === undefined ? "Tidak tersedia" : value > 0 && value < 0.01 ? "<0,01 hari" : `${decimal.format(value)} hari`;
 const reasonLabel = {
-  ELIGIBLE: "Layak", PRICE_TOO_HIGH: "Harga terlalu tinggi", LOW_TRADING_ACTIVITY: "Aktivitas rendah",
-  INSUFFICIENT_HISTORY: "History belum cukup", STALE_MARKET_DATA: "Harga stale", MISSING_MARKET_DATA: "Harga tidak tersedia",
-  NO_ECONOMIC_ADVANTAGE: "Bid tidak di bawah Sell Order",
+  ELIGIBLE: "Layak", EXCEEDS_TWO_DAY_TARGET: "Lebih dari 2 hari", MISSING_ACTIVITY: "Aktivitas tidak tersedia",
+  NO_TRADING_ACTIVITY: "Volume harian nol", INSUFFICIENT_HISTORY: "History belum cukup", STALE_ACTIVITY: "Aktivitas stale",
+  STALE_MARKET_DATA: "Harga stale", MISSING_MARKET_DATA: "Harga tidak tersedia",
 } as const;
 
 function PriceTable({ estimate, nameOf, itemFilter }: { estimate: BuyOrderEstimateResult; nameOf: (id: string) => string; itemFilter?: string }) {
   const materials = itemFilter ? estimate.materials.filter(({ itemId }) => itemId === itemFilter) : estimate.materials;
   const hasPartialCoverage = materials.some(({ coverage }) => coverage !== "complete");
   return <><div className="table-wrap"><table className="price-table" aria-label="Harga Shopping List">
-    <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Competitive BO</th><th>Subtotal</th><th>Terjual / hari</th><th>Observasi</th><th>Status</th></tr></thead>
+    <thead><tr><th>Material / kota</th><th>Jumlah</th><th>Competitive BO</th><th>Subtotal</th><th>Terjual / hari</th><th>Estimasi Hari</th><th>Observasi</th><th>Status</th></tr></thead>
     <tbody>{materials.flatMap((material) => material.candidates.map((candidate) => {
       const recommended = material.suggestedCity === candidate.city;
       const bidPrice = recommended ? material.suggestedBidPrice : candidate.bidPrice;
       return <tr className={recommended ? "recommended-price" : undefined} key={`${material.itemId}:${candidate.city}`}>
-        <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{material.cheapestCity === candidate.city && <span className="price-cheapest">Termurah</span>}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.averageDailyUnits === undefined ? "—" : <>{integer.format(Math.round(candidate.averageDailyUnits))}<small>{candidate.activityCoverageDays} hari lengkap</small></>}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span><small>{reasonLabel[candidate.bestValueReason]}</small></td>
+        <td><strong>{nameOf(material.itemId)}</strong><small>{candidate.city}{material.cheapestCity === candidate.city && <span className="price-cheapest">Termurah</span>}{recommended && <span className="recommendation">Rekomendasi</span>}</small></td><td>{integer.format(material.quantity)}</td><td>{bidPrice === undefined ? "—" : silver(bidPrice)}</td><td>{candidate.subtotal === undefined ? "—" : silver(candidate.subtotal)}</td><td>{candidate.averageDailyUnits === undefined ? "—" : <>{integer.format(Math.round(candidate.averageDailyUnits))}<small>{candidate.activityCoverageDays} hari lengkap</small></>}</td><td>{estimatedDays(candidate.estimatedDays)}</td><td>{candidate.observedAt ? <>{new Date(candidate.observedAt).toLocaleString("id-ID")}<small>{candidate.ageHours!.toFixed(1)} jam lalu</small></> : "—"}</td><td><span className={`price-status ${candidate.status}`}>{candidate.status}</span><small>{reasonLabel[candidate.bestValueReason]}</small></td>
       </tr>;
     }))}</tbody>
-  </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong>{estimate.estimatedTotal === null && <p>Total Best Value belum tersedia. Estimasi termurah berbasis harga fresh saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}{hasPartialCoverage && <p>Cakupan kota parsial; rekomendasi tidak menyatakan kota terbaik secara global.</p>}</div></>;
+  </table></div><div className="price-summary"><span>Estimasi modal Best Value · {estimate.status}</span><strong>{estimate.estimatedTotal === null ? "—" : silver(estimate.estimatedTotal)}</strong><p>Estimasi Hari (Volume Pasar) = jumlah kebutuhan ÷ 100% rata-rata unit terjual harian; bukan jaminan Buy Order terisi.</p>{estimate.estimatedTotal === null && <p>Tidak ada rekomendasi lengkap yang memenuhi target maksimal 2 hari. Estimasi termurah berbasis harga fresh saja: {estimate.priceOnlyEstimatedTotal === null ? "—" : silver(estimate.priceOnlyEstimatedTotal)}.</p>}{hasPartialCoverage && <p>Cakupan kota parsial; rekomendasi tidak menyatakan kota terbaik secara global.</p>}</div></>;
 }
 
 function PlanTable({ title, rows, nameOf }: { title: string; rows: ProcessPlan[]; nameOf: (id: string) => string }) {
