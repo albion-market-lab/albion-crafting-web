@@ -62,6 +62,8 @@ describe("Task 11 MVP smoke flow", () => {
     const cheapest = screen.getByText("Termurah").closest("tr")!;
     expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
     expect(within(cheapest).getByText("Lebih dari 2 hari")).toBeVisible();
+    expect(screen.getByText("Data aktivitas: 2/5 kota")).toBeVisible();
+    expect(screen.getByText(/Kota lain belum dapat dibandingkan sepenuhnya/)).toBeVisible();
     expect(screen.getByText(/100% rata-rata unit terjual harian/)).toBeVisible();
     expect(screen.getByText(/Estimasi modal Best Value · partial/)).toBeVisible();
   });

@@ -3,13 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import type { CatalogData } from "@albion-market-lab/crafting-calculator";
 import catalogJson from "./fixtures/catalog-v3.json";
-import { App } from "../src/App.js";
+import { App, formatEstimatedDays } from "../src/App.js";
 import type { PriceSnapshot } from "../src/prices.js";
 
 const catalog = catalogJson as CatalogData;
 const loader = async () => catalog;
 const now = () => new Date("2026-10-29T06:00:00Z");
 const deferred = <T,>() => { let resolve!: (value: T) => void; const promise = new Promise<T>((done) => { resolve = done; }); return { promise, resolve }; };
+
+describe("formatEstimatedDays", () => {
+  it.each([
+    [1.5, "1,5 hari"], [2, "2 hari"], [2.001, ">2 hari"], [2.0001, ">2 hari"], [2.1, "2,1 hari"], [0.005, "<0,01 hari"], [undefined, "Tidak tersedia"],
+  ])("formats %s without contradicting eligibility", (value, expected) => expect(formatEstimatedDays(value)).toBe(expected));
+});
 
 describe("multi-target crafting planner", () => {
   it("aggregates duplicate targets and renders calculator results", async () => {
@@ -124,7 +130,7 @@ describe("multi-target crafting planner", () => {
     const cheapest = within(priceTable).getByText("Termurah").closest("tr")!;
     expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
     expect(within(cheapest).queryByText("Martlock")).not.toBeInTheDocument();
-    expect(screen.getByText(/Cakupan kota parsial/)).toBeVisible();
+    expect(screen.getByText(/Cakupan harga kota parsial/)).toBeVisible();
     expect(within(priceTable).getAllByText("Cotton")).not.toHaveLength(0);
     const fiberFilter = screen.getByRole("button", { name: "Filter harga Amberleaf Cotton" });
     await user.click(fiberFilter);
@@ -178,6 +184,29 @@ describe("multi-target crafting planner", () => {
     const cheapest = screen.getByText("Termurah").closest("tr")!;
     expect(within(cheapest).getByText("Bridgewatch")).toBeVisible();
     expect(within(cheapest).getByText("Lebih dari 2 hari")).toBeVisible();
+  });
+
+  it("shows activity duration for a missing BO price without recommending that city", async () => {
+    const user = userEvent.setup();
+    render(<App catalogLoader={loader} now={now}
+      priceLoader={async () => ({ server: "East/Asia", items: [
+        { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, highestBuyPrice: null, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+        { server: "East/Asia", itemId: "T6_FIBER", city: "Thetford", quality: 1, highestBuyPrice: 125, highestBuyObservedAt: "2026-10-29T05:00:00Z" },
+      ] })}
+      activityLoader={async () => ({ server: "East/Asia", items: [
+        { server: "East/Asia", itemId: "T6_FIBER", city: "Bridgewatch", quality: 1, averageDailyUnits: 2_000, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+        { server: "East/Asia", itemId: "T6_FIBER", city: "Thetford", quality: 1, averageDailyUnits: 3_000, coverageDays: 6, observedAt: "2026-10-29T05:00:00Z" },
+      ] })} />);
+    await screen.findByLabelText("Item crafting");
+    await user.click(screen.getByRole("button", { name: "Tambah item" }));
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    await user.click(await screen.findByRole("button", { name: "Filter harga Amberleaf Cotton" }));
+    const bridgewatch = screen.getByText("Bridgewatch").closest("tr")!;
+    expect(within(bridgewatch).getByText("missing")).toBeVisible();
+    expect(within(bridgewatch).getByText("0,03 hari")).toBeVisible();
+    expect(within(bridgewatch).queryByText("Rekomendasi")).not.toBeInTheDocument();
+    const recommended = screen.getByText("Rekomendasi").closest("tr")!;
+    expect(within(recommended).getByText("Thetford")).toBeVisible();
   });
 
   it("distinguishes empty, offline, and failed price sources while preserving materials", async () => {
