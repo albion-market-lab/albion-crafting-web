@@ -71,6 +71,24 @@ CATALOG_JSON=/absolute/path/to/output/catalog.json corepack pnpm sync:catalog
 
 Contoh target (nama bersifat ilustratif, pemilihan sebenarnya menggunakan item ID yang valid): cloth armor T6 × 100 + plate shoes T5 × 20.
 
+### Draft dan crafting template
+
+Target aktif otomatis disimpan di browser dengan key `albion-market-lab:crafting-draft:v1`. Saved template memakai key terpisah `albion-market-lab:crafting-templates:v1`, sehingga perubahan current draft tidak mengubah snapshot template. Hanya item ID dan quantity target yang disimpan; hasil kalkulasi, harga, aktivitas pasar, dan rekomendasi Buy Order selalu dihitung ulang.
+
+Export JSON menggunakan kontrak portabel berikut:
+
+```json
+{
+  "format": "albion-market-lab-crafting-template",
+  "schemaVersion": 1,
+  "name": "Crafting BM Harian",
+  "exportedAt": "2026-11-01T12:00:00.000Z",
+  "targets": [{ "itemId": "T4_ARMOR_CLOTH_SET1", "quantity": 30 }]
+}
+```
+
+Import dibatasi 1 MiB dan 5.000 baris, divalidasi seluruhnya terhadap katalog aktif sebelum disimpan, serta tidak mengganti current draft sampai pengguna memilih **Load** dan menyetujui konfirmasi.
+
 ### Filter kategori
 
 Dropdown kategori berbasis disclosure native menyediakan **Equipment** → Helmet, Armor, Shoes, Weapon, dan Off-hand dengan cabang Cloth/Leather/Plate; Bag dan Cape tersedia langsung. Breadcrumb pada tombol menunjukkan filter aktif, sedangkan **All Supported**, **Reset filter**, atau **Clear filters** mengembalikan seluruh katalog. Dropdown dapat dinavigasi dengan Tab/Shift+Tab dan Enter/Space, serta ditutup dengan `Escape` atau klik di luar.

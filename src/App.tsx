@@ -4,6 +4,8 @@ import { loadCatalog, type WebCatalogData } from "./catalog.js";
 import { loadActivity, loadPrices, type ActivitySnapshot, type PriceSnapshot } from "./prices.js";
 import { CategoryTree } from "./CategoryTree.js";
 import { buildCategoryAssignments, type CategorySelection } from "./categories.js";
+import { CraftingTemplates } from "./CraftingTemplates.js";
+import { readDraft, readTemplates, writeDraft, writeTemplates, type SavedCraftingTemplate } from "./crafting-template.js";
 
 interface AppProps {
   catalogLoader?: () => Promise<WebCatalogData>;
@@ -68,12 +70,17 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
   const [category, setCategory] = useState<CategorySelection>("all");
   const [quantity, setQuantity] = useState("1");
   const [targets, setTargets] = useState<CraftTarget[]>([]);
+  const [templates, setTemplates] = useState<SavedCraftingTemplate[]>([]);
+  const [draftReady, setDraftReady] = useState(false);
+  const [storageWarning, setStorageWarning] = useState("");
   const [result, setResult] = useState<CalculationResult>();
   const [estimate, setEstimate] = useState<BuyOrderEstimateResult>();
   const [shoppingItemFilter, setShoppingItemFilter] = useState<string>();
   const [priceState, setPriceState] = useState<"idle" | "loading" | "offline" | "empty" | "ready" | "error">("idle");
   const [error, setError] = useState("");
   const priceRequestVersion = useRef(0);
+  const draftHydrated = useRef(false);
+  const savedDraftValue = useRef("");
 
   useEffect(() => {
     let active = true;
@@ -85,6 +92,27 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
     const supported = catalog?.supportedCraftableIds ? new Set(catalog.supportedCraftableIds) : undefined;
     return catalog?.items.filter((item) => item.hasCraftingRecipe && (!supported || supported.has(item.itemId))) ?? [];
   }, [catalog]);
+  const supportedItemIds = useMemo(() => new Set(craftable.map(({ itemId }) => itemId)), [craftable]);
+  useEffect(() => {
+    if (!catalog || draftHydrated.current) return;
+    draftHydrated.current = true;
+    const warnings: string[] = [];
+    try {
+      const storage = window.localStorage;
+      try { const draft = readDraft(storage, supportedItemIds); if (draft !== undefined) { savedDraftValue.current = JSON.stringify(draft); setTargets(draft); } } catch (cause) { warnings.push(cause instanceof Error ? cause.message : "Draft tersimpan gagal dimuat."); }
+      try { setTemplates(readTemplates(storage, supportedItemIds)); } catch (cause) { warnings.push(cause instanceof Error ? cause.message : "Template tersimpan gagal dimuat."); }
+    } catch { warnings.push("Browser storage tidak tersedia. Planner tetap dapat digunakan tanpa autosave."); }
+    if (!savedDraftValue.current) savedDraftValue.current = JSON.stringify([]);
+    setStorageWarning(warnings.join(" "));
+    setDraftReady(true);
+  }, [catalog, supportedItemIds]);
+  useEffect(() => {
+    if (!draftReady) return;
+    const value = JSON.stringify(targets);
+    if (value === savedDraftValue.current) return;
+    try { writeDraft(window.localStorage, targets); savedDraftValue.current = value; }
+    catch { setStorageWarning("Draft tidak dapat disimpan ke browser storage. Perubahan tetap aktif selama halaman terbuka."); }
+  }, [draftReady, targets]);
   const tiers = useMemo(() => [...new Set(craftable.flatMap((item) => item.tier === undefined ? [] : [item.tier]))].sort((a, b) => a - b), [craftable]);
   const enchantments = useMemo(() => [...new Set(craftable.map((item) => item.enchantment))].sort((a, b) => a - b), [craftable]);
   const categoryAssignments = useMemo(() => catalog ? buildCategoryAssignments(catalog, craftable) : new Map(), [catalog, craftable]);
@@ -112,6 +140,10 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
     return item?.tier === undefined ? "Tier tidak diketahui" : `T${item.tier}${item.enchantment ? `.${item.enchantment}` : ""}`;
   };
   const changeTargets = (next: CraftTarget[]) => { priceRequestVersion.current += 1; setTargets(next); setResult(undefined); setEstimate(undefined); setShoppingItemFilter(undefined); setPriceState("idle"); setError(""); };
+  const changeTemplates = (next: SavedCraftingTemplate[]) => {
+    try { readTemplates(window.localStorage, supportedItemIds); writeTemplates(window.localStorage, next); setTemplates(next); return true; }
+    catch { setStorageWarning("Template tidak dapat disimpan ke browser storage. Data lama tidak dihapus."); return false; }
+  };
 
   const addTarget = () => {
     const count = Number(quantity);
@@ -168,6 +200,8 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
         <button type="button" onClick={addTarget}>Tambah item</button>
       </div>
       {targets.length === 0 ? <div className="empty"><strong>Plan masih kosong.</strong><span>Pilih item dan quantity untuk mulai.</span></div> : <div className="targets">{targets.map((target) => <article key={target.itemId}><div><strong>{nameOf(target.itemId)}</strong><small>{target.itemId}</small></div><label>Qty<input key={target.quantity} aria-label={`Quantity ${target.itemId}`} type="number" min="1" defaultValue={target.quantity} onBlur={(event) => { const next = Number(event.target.value); if (Number.isSafeInteger(next) && next > 0) changeTargets(targets.map((item) => item.itemId === target.itemId ? { ...item, quantity: next } : item)); else { event.target.value = String(target.quantity); setError("Quantity harus berupa bilangan bulat positif."); } }} /></label><button className="remove" type="button" onClick={() => changeTargets(targets.filter((item) => item.itemId !== target.itemId))}>Hapus</button></article>)}</div>}
+      <CraftingTemplates targets={targets} templates={templates} supportedItemIds={supportedItemIds} onLoad={changeTargets} onTemplatesChange={changeTemplates} />
+      {storageWarning && <p className="storage-warning" role="status">{storageWarning}</p>}
       {error && <p className="error" role="alert">{error}</p>}
       <button className="calculate" type="button" onClick={calculate}>Hitung kebutuhan <span>→</span></button>
     </section>
