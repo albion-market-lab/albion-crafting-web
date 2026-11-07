@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  createPortableTemplate, DRAFT_STORAGE_KEY, MAX_TEMPLATE_BYTES, parsePortableTemplate, readDraft, readTemplates,
+  addStoredTemplate, createPortableTemplate, deleteStoredTemplate, DRAFT_STORAGE_KEY, MAX_TEMPLATE_BYTES, parsePortableTemplate, readDraft, readTemplates, renameStoredTemplate,
   serializeTemplate, TEMPLATE_FORMAT, TEMPLATE_SCHEMA_VERSION, TEMPLATE_STORAGE_KEY, templateFilename, validateTargets,
-  writeDraft, writeTemplates, type SavedCraftingTemplate,
+  updateStoredTemplate, writeDraft, writeTemplates, type SavedCraftingTemplate,
 } from "../src/crafting-template.js";
 
 const supported = new Set(["T4_ARMOR_CLOTH_SET1", "T5_MAIN_HOLYSTAFF", "T6_2H_HAMMER"]);
@@ -82,5 +82,38 @@ describe("crafting template schema and storage", () => {
   it("supports a 45-item target plan without truncation", () => {
     const large = Array.from({ length: 45 }, (_, index) => ({ itemId: `T4_ITEM_${index}`, quantity: index + 1 }));
     expect(validateTargets(large).targets).toEqual(large);
+  });
+
+  it("preserves unrelated templates across stale-tab add and rename operations", () => {
+    const a: SavedCraftingTemplate = { id: "a", name: "A", createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", targets: targets.slice(0, 1) };
+    const b: SavedCraftingTemplate = { id: "b", name: "B", createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", targets: targets.slice(1, 2) };
+    writeTemplates(localStorage, [a, b]);
+    const tabA = readTemplates(localStorage, supported);
+    addStoredTemplate(localStorage, supported, { id: "c", name: "C", createdAt: "2026-11-01T00:00:01Z", updatedAt: "2026-11-01T00:00:01Z", targets: targets.slice(2) });
+    const result = renameStoredTemplate(localStorage, supported, tabA[0]!, "A renamed", "2026-11-01T00:00:02Z");
+    expect(result.map(({ name }) => name)).toEqual(["A renamed", "B", "C"]);
+  });
+
+  it("preserves independent stale-tab updates to different template IDs", () => {
+    const a: SavedCraftingTemplate = { id: "a", name: "A", createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", targets: targets.slice(0, 1) };
+    const b: SavedCraftingTemplate = { id: "b", name: "B", createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", targets: targets.slice(1, 2) };
+    writeTemplates(localStorage, [a, b]);
+    const tabA = readTemplates(localStorage, supported);
+    const tabB = readTemplates(localStorage, supported);
+    updateStoredTemplate(localStorage, supported, tabA[0]!, [{ ...targets[0]!, quantity: 31 }], "2026-11-01T00:00:01Z");
+    const result = updateStoredTemplate(localStorage, supported, tabB[1]!, [{ ...targets[1]!, quantity: 21 }], "2026-11-01T00:00:02Z");
+    expect(result.map(({ targets: value }) => value[0]!.quantity)).toEqual([31, 21]);
+  });
+
+  it("rejects stale same-template updates and updates after remote deletion", () => {
+    const a: SavedCraftingTemplate = { id: "a", name: "A", createdAt: "2026-11-01T00:00:00Z", updatedAt: "2026-11-01T00:00:00Z", targets: targets.slice(0, 1) };
+    writeTemplates(localStorage, [a]);
+    const stale = readTemplates(localStorage, supported)[0]!;
+    updateStoredTemplate(localStorage, supported, stale, [{ ...targets[0]!, quantity: 31 }], "2026-11-01T00:00:01Z");
+    expect(() => renameStoredTemplate(localStorage, supported, stale, "Lost edit", "2026-11-01T00:00:02Z")).toThrow("tab lain");
+    const latest = readTemplates(localStorage, supported)[0]!;
+    deleteStoredTemplate(localStorage, supported, latest);
+    expect(() => updateStoredTemplate(localStorage, supported, latest, targets.slice(0, 1), "2026-11-01T00:00:03Z")).toThrow("tab lain");
+    expect(readTemplates(localStorage, supported)).toEqual([]);
   });
 });

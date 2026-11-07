@@ -5,7 +5,7 @@ import { loadActivity, loadPrices, type ActivitySnapshot, type PriceSnapshot } f
 import { CategoryTree } from "./CategoryTree.js";
 import { buildCategoryAssignments, type CategorySelection } from "./categories.js";
 import { CraftingTemplates } from "./CraftingTemplates.js";
-import { readDraft, readTemplates, writeDraft, writeTemplates, type SavedCraftingTemplate } from "./crafting-template.js";
+import { addStoredTemplate, deleteStoredTemplate, DRAFT_STORAGE_KEY, readDraft, readTemplates, renameStoredTemplate, TEMPLATE_STORAGE_KEY, updateStoredTemplate, writeDraft, type SavedCraftingTemplate } from "./crafting-template.js";
 
 interface AppProps {
   catalogLoader?: () => Promise<WebCatalogData>;
@@ -60,6 +60,13 @@ function IngredientBreakdownList({ title, action, ingredientHeader, rows, nameOf
   </section>;
 }
 
+function TargetQuantityInput({ target, onCommit, onInvalid }: { target: CraftTarget; onCommit: (quantity: number) => void; onInvalid: () => void }) {
+  const [value, setValue] = useState(String(target.quantity));
+  useEffect(() => setValue(String(target.quantity)), [target.quantity]);
+  const validQuantity = (text: string) => { const quantity = Number(text); return text !== "" && Number.isSafeInteger(quantity) && quantity > 0 ? quantity : undefined; };
+  return <input aria-label={`Quantity ${target.itemId}`} type="number" min="1" value={value} onChange={(event) => { const text = event.target.value; setValue(text); const next = validQuantity(text); if (next !== undefined && next !== target.quantity) onCommit(next); }} onBlur={() => { if (validQuantity(value) === undefined) { setValue(String(target.quantity)); onInvalid(); } }} />;
+}
+
 export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, activityLoader = loadActivity, now = () => new Date() }: AppProps) {
   const [catalog, setCatalog] = useState<WebCatalogData>();
   const [loadError, setLoadError] = useState("");
@@ -71,7 +78,7 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
   const [quantity, setQuantity] = useState("1");
   const [targets, setTargets] = useState<CraftTarget[]>([]);
   const [templates, setTemplates] = useState<SavedCraftingTemplate[]>([]);
-  const [draftReady, setDraftReady] = useState(false);
+  const [draftConflict, setDraftConflict] = useState<CraftTarget[]>();
   const [storageWarning, setStorageWarning] = useState("");
   const [result, setResult] = useState<CalculationResult>();
   const [estimate, setEstimate] = useState<BuyOrderEstimateResult>();
@@ -104,15 +111,24 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
     } catch { warnings.push("Browser storage tidak tersedia. Planner tetap dapat digunakan tanpa autosave."); }
     if (!savedDraftValue.current) savedDraftValue.current = JSON.stringify([]);
     setStorageWarning(warnings.join(" "));
-    setDraftReady(true);
   }, [catalog, supportedItemIds]);
   useEffect(() => {
-    if (!draftReady) return;
-    const value = JSON.stringify(targets);
-    if (value === savedDraftValue.current) return;
-    try { writeDraft(window.localStorage, targets); savedDraftValue.current = value; }
-    catch { setStorageWarning("Draft tidak dapat disimpan ke browser storage. Perubahan tetap aktif selama halaman terbuka."); }
-  }, [draftReady, targets]);
+    if (!catalog) return;
+    const syncStorage = (event: StorageEvent) => {
+      if (event.key === TEMPLATE_STORAGE_KEY) {
+        try { setTemplates(readTemplates(window.localStorage, supportedItemIds)); }
+        catch { setStorageWarning("Template dari tab lain tidak dapat dibaca. Data lokal tidak diubah."); }
+      }
+      if (event.key === DRAFT_STORAGE_KEY) {
+        try {
+          const remote = readDraft(window.localStorage, supportedItemIds) ?? [];
+          if (JSON.stringify(remote) !== savedDraftValue.current) { setDraftConflict(remote); setStorageWarning("Current Draft berubah di tab lain. Pilih draft yang ingin dipertahankan."); }
+        } catch { setStorageWarning("Draft dari tab lain tidak dapat dibaca. Current Draft tab ini tetap dipertahankan."); }
+      }
+    };
+    window.addEventListener("storage", syncStorage);
+    return () => window.removeEventListener("storage", syncStorage);
+  }, [catalog, supportedItemIds]);
   const tiers = useMemo(() => [...new Set(craftable.flatMap((item) => item.tier === undefined ? [] : [item.tier]))].sort((a, b) => a - b), [craftable]);
   const enchantments = useMemo(() => [...new Set(craftable.map((item) => item.enchantment))].sort((a, b) => a - b), [craftable]);
   const categoryAssignments = useMemo(() => catalog ? buildCategoryAssignments(catalog, craftable) : new Map(), [catalog, craftable]);
@@ -139,11 +155,26 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
     const item = itemMap.get(itemId);
     return item?.tier === undefined ? "Tier tidak diketahui" : `T${item.tier}${item.enchantment ? `.${item.enchantment}` : ""}`;
   };
-  const changeTargets = (next: CraftTarget[]) => { priceRequestVersion.current += 1; setTargets(next); setResult(undefined); setEstimate(undefined); setShoppingItemFilter(undefined); setPriceState("idle"); setError(""); };
-  const changeTemplates = (next: SavedCraftingTemplate[]) => {
-    try { readTemplates(window.localStorage, supportedItemIds); writeTemplates(window.localStorage, next); setTemplates(next); return true; }
-    catch { setStorageWarning("Template tidak dapat disimpan ke browser storage. Data lama tidak dihapus."); return false; }
+  const applyTargets = (next: CraftTarget[]) => { priceRequestVersion.current += 1; setTargets(next); setResult(undefined); setEstimate(undefined); setShoppingItemFilter(undefined); setPriceState("idle"); setError(""); };
+  const changeTargets = (next: CraftTarget[]) => {
+    applyTargets(next);
+    try {
+      const persisted = readDraft(window.localStorage, supportedItemIds) ?? [];
+      if (JSON.stringify(persisted) !== savedDraftValue.current) { setDraftConflict(persisted); setStorageWarning("Current Draft berubah di tab lain. Perubahan tab ini belum disimpan; pilih draft yang ingin dipertahankan."); return; }
+      writeDraft(window.localStorage, next);
+      savedDraftValue.current = JSON.stringify(next);
+    } catch { setStorageWarning("Draft tidak dapat disimpan ke browser storage. Perubahan tetap aktif selama halaman terbuka."); }
   };
+  const mutateTemplates = (mutation: () => SavedCraftingTemplate[]) => {
+    try { setTemplates(mutation()); return true; }
+    catch (cause) {
+      try { setTemplates(readTemplates(window.localStorage, supportedItemIds)); } catch { /* Preserve the current in-memory list when storage is unreadable. */ }
+      setStorageWarning(cause instanceof Error ? cause.message : "Template tidak dapat disimpan. Data lama tidak dihapus.");
+      return false;
+    }
+  };
+  const keepCurrentDraft = () => { try { writeDraft(window.localStorage, targets); savedDraftValue.current = JSON.stringify(targets); setDraftConflict(undefined); setStorageWarning("Current Draft tab ini disimpan dan menggantikan versi tab lain."); } catch { setStorageWarning("Current Draft tab ini tidak dapat disimpan."); } };
+  const loadRemoteDraft = () => { try { const remote = readDraft(window.localStorage, supportedItemIds) ?? []; savedDraftValue.current = JSON.stringify(remote); setDraftConflict(undefined); applyTargets(remote); setStorageWarning("Current Draft terbaru dari tab lain dimuat."); } catch { setStorageWarning("Draft dari tab lain tidak dapat dibaca."); } };
 
   const addTarget = () => {
     const count = Number(quantity);
@@ -199,8 +230,13 @@ export function App({ catalogLoader = loadCatalog, priceLoader = loadPrices, act
         <label>Quantity<input aria-label="Quantity" inputMode="numeric" value={quantity} onChange={(event) => setQuantity(event.target.value)} /></label>
         <button type="button" onClick={addTarget}>Tambah item</button>
       </div>
-      {targets.length === 0 ? <div className="empty"><strong>Plan masih kosong.</strong><span>Pilih item dan quantity untuk mulai.</span></div> : <div className="targets">{targets.map((target) => <article key={target.itemId}><div><strong>{nameOf(target.itemId)}</strong><small>{target.itemId}</small></div><label>Qty<input key={target.quantity} aria-label={`Quantity ${target.itemId}`} type="number" min="1" defaultValue={target.quantity} onBlur={(event) => { const next = Number(event.target.value); if (Number.isSafeInteger(next) && next > 0) changeTargets(targets.map((item) => item.itemId === target.itemId ? { ...item, quantity: next } : item)); else { event.target.value = String(target.quantity); setError("Quantity harus berupa bilangan bulat positif."); } }} /></label><button className="remove" type="button" onClick={() => changeTargets(targets.filter((item) => item.itemId !== target.itemId))}>Hapus</button></article>)}</div>}
-      <CraftingTemplates targets={targets} templates={templates} supportedItemIds={supportedItemIds} onLoad={changeTargets} onTemplatesChange={changeTemplates} />
+      {targets.length === 0 ? <div className="empty"><strong>Plan masih kosong.</strong><span>Pilih item dan quantity untuk mulai.</span></div> : <div className="targets">{targets.map((target) => <article key={target.itemId}><div><strong>{nameOf(target.itemId)}</strong><small>{target.itemId}</small></div><label>Qty<TargetQuantityInput target={target} onCommit={(next) => changeTargets(targets.map((item) => item.itemId === target.itemId ? { ...item, quantity: next } : item))} onInvalid={() => setError("Quantity harus berupa bilangan bulat positif.")} /></label><button className="remove" type="button" onClick={() => changeTargets(targets.filter((item) => item.itemId !== target.itemId))}>Hapus</button></article>)}</div>}
+      <CraftingTemplates targets={targets} templates={templates} supportedItemIds={supportedItemIds} onLoad={changeTargets}
+        onAdd={(template) => mutateTemplates(() => addStoredTemplate(window.localStorage, supportedItemIds, template))}
+        onRename={(template, name, updatedAt) => mutateTemplates(() => renameStoredTemplate(window.localStorage, supportedItemIds, template, name, updatedAt))}
+        onUpdate={(template, next, updatedAt) => mutateTemplates(() => updateStoredTemplate(window.localStorage, supportedItemIds, template, next, updatedAt))}
+        onDelete={(template) => mutateTemplates(() => deleteStoredTemplate(window.localStorage, supportedItemIds, template))} />
+      {draftConflict && <div className="draft-conflict" role="alert"><strong>Draft conflict antar-tab</strong><span>Current Draft tab ini tidak ditimpa otomatis.</span><button type="button" onClick={keepCurrentDraft}>Pertahankan tab ini</button><button type="button" onClick={loadRemoteDraft}>Muat draft tab lain</button></div>}
       {storageWarning && <p className="storage-warning" role="status">{storageWarning}</p>}
       {error && <p className="error" role="alert">{error}</p>}
       <button className="calculate" type="button" onClick={calculate}>Hitung kebutuhan <span>→</span></button>

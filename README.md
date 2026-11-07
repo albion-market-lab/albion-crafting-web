@@ -89,6 +89,8 @@ Export JSON menggunakan kontrak portabel berikut:
 
 Import dibatasi 1 MiB dan 5.000 baris, divalidasi seluruhnya terhadap katalog aktif sebelum disimpan, serta tidak mengganti current draft sampai pengguna memilih **Load** dan menyetujui konfirmasi.
 
+Perubahan template dari tab lain disinkronkan melalui browser `storage` event. Setiap rename/update/delete membaca storage terbaru dan menolak perubahan bila template dengan ID yang sama sudah berubah atau dihapus. Konflik Current Draft tidak diterapkan otomatis; pengguna memilih mempertahankan tab aktif atau memuat draft tab lain. Karena `localStorage` tidak menyediakan compare-and-swap transaksional, dua write yang benar-benar bersamaan dalam jeda sangat kecil masih dapat berlomba; mekanisme ini mencegah overwrite normal lintas-tab dan mendeteksi revisi stale, tetapi bukan distributed lock.
+
 ### Filter kategori
 
 Dropdown kategori berbasis disclosure native menyediakan **Equipment** → Helmet, Armor, Shoes, Weapon, dan Off-hand dengan cabang Cloth/Leather/Plate; Bag dan Cape tersedia langsung. Breadcrumb pada tombol menunjukkan filter aktif, sedangkan **All Supported**, **Reset filter**, atau **Clear filters** mengembalikan seluruh katalog. Dropdown dapat dinavigasi dengan Tab/Shift+Tab dan Enter/Space, serta ditutup dengan `Escape` atau klik di luar.

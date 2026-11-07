@@ -14,10 +14,13 @@ interface CraftingTemplatesProps {
   templates: SavedCraftingTemplate[];
   supportedItemIds: ReadonlySet<string>;
   onLoad: (targets: CraftTarget[]) => void;
-  onTemplatesChange: (templates: SavedCraftingTemplate[]) => boolean;
+  onAdd: (template: SavedCraftingTemplate) => boolean;
+  onRename: (template: SavedCraftingTemplate, name: string, updatedAt: string) => boolean;
+  onUpdate: (template: SavedCraftingTemplate, targets: CraftTarget[], updatedAt: string) => boolean;
+  onDelete: (template: SavedCraftingTemplate) => boolean;
 }
 
-export function CraftingTemplates({ targets, templates, supportedItemIds, onLoad, onTemplatesChange }: CraftingTemplatesProps) {
+export function CraftingTemplates({ targets, templates, supportedItemIds, onLoad, onAdd, onRename, onUpdate, onDelete }: CraftingTemplatesProps) {
   const [name, setName] = useState("");
   const [feedback, setFeedback] = useState("");
   const [importPreview, setImportPreview] = useState<PortableCraftingTemplate>();
@@ -28,8 +31,7 @@ export function CraftingTemplates({ targets, templates, supportedItemIds, onLoad
     try {
       const portable = createPortableTemplate(name, targets);
       const timestamp = now();
-      const next = [...templates, { id: newTemplateId(), name: portable.name, createdAt: timestamp, updatedAt: timestamp, targets: portable.targets }];
-      if (onTemplatesChange(next)) { setName(""); setFeedback(`Template '${portable.name}' disimpan.`); }
+      if (onAdd({ id: newTemplateId(), name: portable.name, createdAt: timestamp, updatedAt: timestamp, targets: portable.targets })) { setName(""); setFeedback(`Template '${portable.name}' disimpan.`); }
     } catch (cause) { setFeedback(cause instanceof Error ? cause.message : "Template gagal disimpan."); }
   };
   const load = (template: SavedCraftingTemplate) => {
@@ -40,14 +42,14 @@ export function CraftingTemplates({ targets, templates, supportedItemIds, onLoad
   const rename = (template: SavedCraftingTemplate) => {
     const nextName = window.prompt("Nama template baru", template.name)?.trim();
     if (!nextName || nextName.length > 120) return;
-    if (onTemplatesChange(templates.map((item) => item.id === template.id ? { ...item, name: nextName, updatedAt: now() } : item))) setFeedback(`Template diubah menjadi '${nextName}'.`);
+    if (onRename(template, nextName, now())) setFeedback(`Template diubah menjadi '${nextName}'.`);
   };
   const update = (template: SavedCraftingTemplate) => {
     if (targets.length === 0) { setFeedback("Current draft kosong dan tidak dapat digunakan untuk update."); return; }
-    if (onTemplatesChange(templates.map((item) => item.id === template.id ? { ...item, targets: targets.map((target) => ({ ...target })), updatedAt: now() } : item))) setFeedback(`Template '${template.name}' diperbarui dari current draft.`);
+    if (onUpdate(template, targets, now())) setFeedback(`Template '${template.name}' diperbarui dari current draft.`);
   };
   const remove = (template: SavedCraftingTemplate) => {
-    if (window.confirm(`Hapus template '${template.name}'?`) && onTemplatesChange(templates.filter(({ id }) => id !== template.id))) setFeedback(`Template '${template.name}' dihapus.`);
+    if (window.confirm(`Hapus template '${template.name}'?`) && onDelete(template)) setFeedback(`Template '${template.name}' dihapus.`);
   };
   const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -65,7 +67,7 @@ export function CraftingTemplates({ targets, templates, supportedItemIds, onLoad
     if (!importPreview) return;
     const timestamp = now();
     const saved = { id: newTemplateId(), name: importPreview.name, createdAt: timestamp, updatedAt: timestamp, targets: importPreview.targets.map((target) => ({ ...target })) };
-    if (onTemplatesChange([...templates, saved])) { setFeedback(`Template '${saved.name}' berhasil diimport tanpa mengubah current draft.`); setImportPreview(undefined); }
+    if (onAdd(saved)) { setFeedback(`Template '${saved.name}' berhasil diimport tanpa mengubah current draft.`); setImportPreview(undefined); }
   };
 
   return <section className="template-panel" aria-labelledby="template-heading">

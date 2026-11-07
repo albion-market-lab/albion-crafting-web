@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { CatalogData } from "@albion-market-lab/crafting-calculator";
@@ -22,14 +22,38 @@ describe("crafting plan persistence UI", () => {
     expect(quantity).toHaveValue(12);
     expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets).toEqual([robe]);
 
-    await user.clear(quantity); await user.type(quantity, "19"); await user.tab();
-    await waitFor(() => expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets[0].quantity).toBe(19));
+    await user.clear(quantity); await user.type(quantity, "19");
+    expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets[0].quantity).toBe(19);
     await user.click(screen.getByRole("button", { name: "Hapus" }));
     await waitFor(() => expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets).toEqual([]));
     view.unmount();
 
     render(<App catalogLoader={loader} />);
     expect(await screen.findByText("Plan masih kosong.")).toBeVisible();
+  });
+
+  it("persists the latest valid controlled quantity without blur and rejects incomplete values", async () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, targets: [{ ...robe, quantity: 10 }] }));
+    const user = userEvent.setup();
+    const view = render(<App catalogLoader={loader} />);
+    const input = await screen.findByLabelText(`Quantity ${robe.itemId}`);
+    await user.click(screen.getByRole("button", { name: /Hitung kebutuhan/ }));
+    expect(screen.getByRole("heading", { name: /Crafting Output/ })).toBeVisible();
+
+    for (const invalid of ["", "0", "-1", "1.5", String(Number.MAX_SAFE_INTEGER + 1)]) {
+      fireEvent.change(input, { target: { value: invalid } });
+      expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets[0].quantity).toBe(10);
+    }
+    fireEvent.blur(input);
+    expect(input).toHaveValue(10);
+    expect(screen.getByRole("alert")).toHaveTextContent("bilangan bulat positif");
+    fireEvent.change(input, { target: { value: "30" } });
+    expect(JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY)!).targets[0].quantity).toBe(30);
+    expect(screen.queryByRole("heading", { name: /Crafting Output/ })).not.toBeInTheDocument();
+    view.unmount();
+
+    render(<App catalogLoader={loader} />);
+    expect(await screen.findByLabelText(`Quantity ${robe.itemId}`)).toHaveValue(30);
   });
 
   it("autosaves a new target and restores it after remount", async () => {
@@ -73,6 +97,46 @@ describe("crafting plan persistence UI", () => {
     expect(await screen.findByText(/Draft tersimpan rusak/)).toBeVisible();
     expect(screen.getByText("Plan masih kosong.")).toBeVisible();
     expect(localStorage.getItem(TEMPLATE_STORAGE_KEY)).toBe("broken");
+  });
+
+  it("synchronizes template storage events without replacing the active draft", async () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, targets: [robe] }));
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(saved()));
+    render(<App catalogLoader={loader} />);
+    await screen.findByText("Saved T5");
+    const remote = saved([boots]);
+    remote.templates.push({ id: "saved-2", name: "Remote Template", createdAt: "2026-11-01T00:00:01Z", updatedAt: "2026-11-01T00:00:01Z", targets: [robe] });
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(remote));
+    window.dispatchEvent(new StorageEvent("storage", { key: TEMPLATE_STORAGE_KEY }));
+    expect(await screen.findByText("Remote Template")).toBeVisible();
+    expect(screen.getByLabelText(`Quantity ${robe.itemId}`)).toHaveValue(12);
+  });
+
+  it("offers an explicit choice instead of silently replacing a cross-tab draft", async () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, targets: [robe] }));
+    const user = userEvent.setup();
+    render(<App catalogLoader={loader} />);
+    await screen.findByLabelText(`Quantity ${robe.itemId}`);
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, targets: [boots] }));
+    window.dispatchEvent(new StorageEvent("storage", { key: DRAFT_STORAGE_KEY }));
+    expect(await screen.findByText("Draft conflict antar-tab")).toBeVisible();
+    expect(screen.getByLabelText(`Quantity ${robe.itemId}`)).toHaveValue(12);
+    await user.click(screen.getByRole("button", { name: "Muat draft tab lain" }));
+    expect(screen.getByLabelText(`Quantity ${boots.itemId}`)).toHaveValue(7);
+  });
+
+  it("reports a same-template conflict instead of overwriting a newer remote revision", async () => {
+    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, targets: [robe] }));
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(saved()));
+    const user = userEvent.setup();
+    render(<App catalogLoader={loader} />);
+    await screen.findByText("Saved T5");
+    const remote = saved([{ ...boots, quantity: 99 }]);
+    remote.templates[0]!.updatedAt = "2026-11-01T00:00:05Z";
+    localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(remote));
+    await user.click(screen.getByRole("button", { name: "Update" }));
+    expect(await screen.findByText(/Template berubah atau dihapus di tab lain/)).toBeVisible();
+    expect(JSON.parse(localStorage.getItem(TEMPLATE_STORAGE_KEY)!).templates[0].targets[0].quantity).toBe(99);
   });
 
   it("saves, renames, updates, loads, and deletes independent templates", async () => {

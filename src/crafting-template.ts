@@ -28,6 +28,10 @@ export interface ValidatedImport {
   duplicateItemIds: string[];
 }
 
+export class TemplateConflictError extends Error {
+  constructor(message = "Template berubah atau dihapus di tab lain. Daftar template telah diperbarui; tinjau perubahan lalu coba lagi.") { super(message); this.name = "TemplateConflictError"; }
+}
+
 const record = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 const validName = (value: unknown): value is string => typeof value === "string" && value.trim().length > 0 && value.trim().length <= 120;
 const ITEM_ID_PATTERN = /^[A-Z0-9_@]+$/;
@@ -109,5 +113,29 @@ export function readTemplates(storage: Storage, supportedItemIds: ReadonlySet<st
 export function writeTemplates(storage: Storage, templates: SavedCraftingTemplate[]) {
   storage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify({ schemaVersion: TEMPLATE_SCHEMA_VERSION, templates }));
 }
+
+const sameTemplateVersion = (left: SavedCraftingTemplate, right: SavedCraftingTemplate) => left.updatedAt === right.updatedAt && JSON.stringify(left) === JSON.stringify(right);
+
+export function addStoredTemplate(storage: Storage, supportedItemIds: ReadonlySet<string>, template: SavedCraftingTemplate): SavedCraftingTemplate[] {
+  const templates = readTemplates(storage, supportedItemIds);
+  if (templates.some(({ id }) => id === template.id)) throw new TemplateConflictError("ID template sudah digunakan di tab lain. Coba simpan kembali.");
+  const next = [...templates, template];
+  writeTemplates(storage, next);
+  return next;
+}
+
+function mutateStoredTemplate(storage: Storage, supportedItemIds: ReadonlySet<string>, expected: SavedCraftingTemplate, mutation: (current: SavedCraftingTemplate) => SavedCraftingTemplate | undefined): SavedCraftingTemplate[] {
+  const templates = readTemplates(storage, supportedItemIds);
+  const index = templates.findIndex(({ id }) => id === expected.id);
+  if (index < 0 || !sameTemplateVersion(templates[index]!, expected)) throw new TemplateConflictError();
+  const changed = mutation(templates[index]!);
+  const next = changed ? templates.map((template, templateIndex) => templateIndex === index ? changed : template) : templates.filter((_, templateIndex) => templateIndex !== index);
+  writeTemplates(storage, next);
+  return next;
+}
+
+export const renameStoredTemplate = (storage: Storage, supportedItemIds: ReadonlySet<string>, expected: SavedCraftingTemplate, name: string, updatedAt: string) => mutateStoredTemplate(storage, supportedItemIds, expected, (current) => ({ ...current, name, updatedAt }));
+export const updateStoredTemplate = (storage: Storage, supportedItemIds: ReadonlySet<string>, expected: SavedCraftingTemplate, targets: CraftTarget[], updatedAt: string) => mutateStoredTemplate(storage, supportedItemIds, expected, (current) => ({ ...current, targets: validateTargets(targets, supportedItemIds, false).targets, updatedAt }));
+export const deleteStoredTemplate = (storage: Storage, supportedItemIds: ReadonlySet<string>, expected: SavedCraftingTemplate) => mutateStoredTemplate(storage, supportedItemIds, expected, () => undefined);
 
 export const newTemplateId = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
